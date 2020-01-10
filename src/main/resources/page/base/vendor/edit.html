@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<!-- SPA container define -->
+<div id="application"></div>
+<!-- loyout template define -->
+<script id="layout-template" type="text/x-kendo-template">
+    <div id="content"></div>
+</script>
+<!-- edit view template define -->
+<script id="editForm-template" type="text/x-kendo-template">
+    <div data-role="toolbar">
+        <div style="padding-left: 15px">
+            <button name="saveEditInfo" class="k-button" type="button" data-role="button"
+                    role="button"
+                    data-bind="events: {click: saveEditInfo}"><span
+                    class="fa fa-save"></span>保存
+            </button>
+            <button name="back" class="k-button" type="button" data-role="button"
+                    role="button"
+                    data-bind="events: {click: back}"><span
+                    class="fa fa-mail-reply"></span>返回
+            </button>
+        </div>
+    </div>
+    <div id="editForm-pane" style="overflow: auto;" data-bind="style: {height: contentHeight}">
+        <form id="editForm" style="padding: 15px;">
+            <div class="row">
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="id"
+                           class="top-label required">供应商编码：</label>
+                    <input id="id" class="k-textbox validate[required,custom[onlyLetterNumber]]"
+                           data-bind="value:editModelData.id"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="vendorName"
+                           class="top-label required">供应商名称：</label>
+                    <input id="vendorName" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.vendorName"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="vendorEmpName"
+                           class="top-label required">负责人名称：</label>
+                    <input id="vendorEmpName" class="validate[required]"
+                           data-bind="value:editModelData.vendorEmpName" data-role="searchbox"
+                           data-search="editFormModel.search" data-clear="editFormModel.clear"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="payableAmount"
+                           class="top-label ">应付金额：</label>
+                    <input id="payableAmount" class=""
+                           data-bind="value:editModelData.payableAmount"
+                           data-role="numerictextbox" readonly="readonly">
+                </div>
+            </div>
+
+            <div class="row">
+                <fieldset class="form-fieldset">
+                    <legend class="form-legend" style="font-weight: bold">联系信息</legend>
+                </fieldset>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="country"
+                           class="top-label ">国家：</label>
+                    <input id="country" class="k-textbox "
+                           data-bind="value:editModelData.country"
+
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="province"
+                           class="top-label ">省份：</label>
+                    <input id="province" class="k-textbox "
+                           data-bind="value:editModelData.province"
+
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="city"
+                           class="top-label ">城市：</label>
+                    <input id="city" class="k-textbox "
+                           data-bind="value:editModelData.city"
+
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="postCode"
+                           class="top-label ">邮编：</label>
+                    <input id="postCode" class="k-textbox "
+                           data-bind="value:editModelData.postCode"
+                            >
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="address"
+                           class="top-label ">地址：</label>
+                    <input id="address" class="k-textbox "
+                           data-bind="value:editModelData.address"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="contactPerson"
+                           class="top-label ">联系人：</label>
+                    <input id="contactPerson" class="k-textbox "
+                           data-bind="value:editModelData.contactPerson"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="contactPhone"
+                           class="top-label ">联系电话：</label>
+                    <input id="contactPhone" class="k-textbox "
+                           data-bind="value:editModelData.contactPhone"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="contactFax"
+                           class="top-label ">传真：</label>
+                    <input id="contactFax" class="k-textbox "
+                           data-bind="value:editModelData.contactFax"
+                            >
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="contactEmail"
+                           class="top-label ">邮件：</label>
+                    <input id="contactEmail" class="k-textbox "
+                           data-bind="value:editModelData.contactEmail"
+
+                            >
+                </div>
+            </div>
+            <div class="row">
+                <fieldset class="form-fieldset">
+                    <legend class="form-legend" style="font-weight: bold">其他信息</legend>
+                </fieldset>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="legalPerson"
+                           class="top-label ">法人：</label>
+                    <input id="legalPerson" class="k-textbox "
+                           data-bind="value:editModelData.legalPerson"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="businessLicense"
+                           class="top-label ">营业执照：</label>
+                    <input id="businessLicense" class="k-textbox "
+                           data-bind="value:editModelData.businessLicense"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="taxationCode"
+                           class="top-label ">税务登记号：</label>
+                    <input id="taxationCode" class="k-textbox "
+                           data-bind="value:editModelData.taxationCode"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="openingBank"
+                           class="top-label ">开户行：</label>
+                    <input id="openingBank" class="k-textbox "
+                           data-bind="value:editModelData.openingBank"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="openingBankAccount"
+                           class="top-label ">开户账号：</label>
+                    <input id="openingBankAccount" class="k-textbox "
+                           data-bind="value:editModelData.openingBankAccount"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="remark"
+                           class="top-label ">备注：</label>
+                    <input id="remark" class="k-textbox "
+                           data-bind="value:editModelData.remark"
+                            >
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+</body>
+<script>
+    // 数据模型
+    var editFormModel = kendo.observable({
+        editModelData: {},
+        op: "create",
+        contentHeight: document.documentElement.clientHeight - 37 + "px",
+        reset: function () {
+            var that = this;
+            that.set("editModelData", {});
+        },
+        search: function () {
+            var that = editFormModel.editModelData;
+            $.core.open("${ctx}/base/emp/selectEmp", "选择负责人", {
+                width: "980px",
+                height: "580px",
+                close: function () {
+                    var emp = $.core.data("selectEmp");
+                    if (emp != undefined && isNotEmpty(emp)) {
+                        that.set("vendorEmpId", emp.id);
+                        that.set("vendorEmpName", emp.username);
+                    } else {
+                        console.log("选择负责人时获取数据失败！或 没有选择")
+                    }
+                }
+            })
+        },
+        clear: function () {
+            var that = editFormModel.editModelData;
+            that.set("vendorEmpId", "");
+            that.set("vendorEmpName", "");
+        },
+        saveEditInfo: function () {
+            var that = this;
+            if ($("#editForm").validationEngine("validate")) {
+                var req = {};
+                var info;
+                info = jQuery.extend(true, {}, that.get("editModelData"));
+                $.extend(req, info);
+                $.ajax({
+                    url: "/base/vendor/" + that.op,
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify(info),
+                    success: function (res) {
+                        if (res.status) {
+                            that.set("op", "update");
+                            $.core.showMsg(res.msg)
+                        } else {
+                            $.core.showErrogMsg(res.msg);
+                        }
+                    }
+                })
+            }
+        },
+        back: function () {
+            history.back(-1);
+        }
+    });
+    // 初始化
+    function initEditForm() {
+        var id = '${id}';
+        if (isNotEmpty(id)) {
+            readOnlyById("id")
+            editFormModel.op = "update";
+            readOnlyById("id");
+            getDataInfoById("/base/vendor/" + id + "/getDataInfoById", function (res) {
+                if (res.status) {
+                    editFormModel.set("editModelData", res.other.modelData);
+                } else {
+                    $.core.showErrogMsg(res.msg);
+                }
+            });
+        } else {
+            editFormModel.op = "create";
+            editFormModel.set("editModelData.payableAmount", 0)
+        }
+    }
+    //基本信息页面
+    var editFormView = new kendo.View("editForm-template", {
+        model: editFormModel, init: initEditForm
+    });
+    // Routing
+    var router = new kendo.Router();
+    // Layout
+    var layout = new kendo.Layout("layout-template");
+    // 渲染
+    layout.render("#application");
+    // 基本信息
+    router.route("/", function () {
+        layout.showIn("#content", editFormView);
+    });
+    $(function () {
+        //开户路由
+        router.start();
+    });
+</script>

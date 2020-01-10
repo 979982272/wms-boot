@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<!-- SPA container define -->
+<div id="application"></div>
+<!-- loyout template define -->
+<script id="layout-template" type="text/x-kendo-template">
+    <div id="content"></div>
+</script>
+<!-- edit view template define -->
+<script id="editForm-template" type="text/x-kendo-template">
+    <div id="editForm-pane" style="overflow: auto;" data-bind="style: {height: contentHeight}">
+        <form id="editForm" style="padding: 15px;">
+            <div class="row">
+                <div class="col-md-6 col-sm-6 col-xs-6">
+                    <label for="id"
+                           class="top-label required">类型编号：</label>
+                    <input id="id" class="k-textbox validate[required,custom[onlyLetterSp]]"
+                           data-bind="value:editModelData.id"
+                            >
+                </div>
+                <div class="col-md-6 col-sm-6 col-xs-6">
+                    <label for="name"
+                           class="top-label required">名称：</label>
+                    <input id="name" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.name"
+                            >
+                </div>
+                <div class="col-md-6 col-sm-6 col-xs-6">
+                    <label for="des"
+                           class="top-label ">描述：</label>
+                    <input id="des" class="k-textbox"
+                           data-bind="value:editModelData.des"
+
+                            >
+                </div>
+                <div class="col-md-6 col-sm-6 col-xs-6">
+                    <label for="remark"
+                           class="top-label ">备注：</label>
+                    <input id="remark" class="k-textbox "
+                           data-bind="value:editModelData.remark"
+                            >
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 col-sm-6 col-xs-6">
+                    <button name="saveEditInfo" class="k-button" type="button" data-role="button"
+                            role="button"
+                            data-bind="events: {click: saveEditInfo}"><span
+                            class="fa fa-save"></span>保存
+                    </button>
+                    <button name="back" class="k-window-action k-link" type="button" data-role="button"
+                            role="button"
+                            data-bind="events: {click: back}"><span
+                            class="fa fa-mail-reply" role="presentation"></span>关闭
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+</body>
+<script>
+    // 数据模型
+    var editFormModel = kendo.observable({
+        editModelData: {},
+        op: "create",
+        contentHeight: document.documentElement.clientHeight - 37 + "px",
+        reset: function () {
+            var that = this;
+            that.set("editModelData", {});
+        },
+        saveEditInfo: function () {
+            var that = this;
+            if ($("#editForm").validationEngine("validate")) {
+                var req = {};
+                var info;
+                info = jQuery.extend(true, {}, that.get("editModelData"));
+                $.extend(req, info);
+                $.ajax({
+                    url: "/base/goodsType/" + that.op,
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify(info),
+                    success: function (res) {
+                        if (res.status) {
+                            that.set("op", "update");
+                            $.core.showMsg(res.msg);
+                            $.core.closeWin();
+                        } else {
+                            $.core.showErrogMsg(res.msg);
+                        }
+                    }
+                })
+            }
+        },
+        back: function () {
+            $.core.closeWin();
+        }
+    });
+    // 初始化
+    function initEditForm() {
+        var id = '${id}';
+        if (isNotEmpty(id)) {
+            editFormModel.op = "update";
+            readOnlyById("id")
+            getDataInfoById("/base/goodsType/" + id + "/getDataInfoById", function (res) {
+                if (res.status) {
+                    editFormModel.set("editModelData", res.other.modelData);
+                } else {
+                    $.core.showErrogMsg(res.msg);
+                }
+            });
+        } else {
+            editFormModel.op = "create";
+            var parentId = "${parentId}";
+            if (isNotEmpty(parentId)) {
+                editFormModel.set("editModelData.parentId", parentId);
+            }
+        }
+    }
+    //基本信息页面
+    var editFormView = new kendo.View("editForm-template", {
+        model: editFormModel, init: initEditForm
+    });
+    // Routing
+    var router = new kendo.Router();
+    // Layout
+    var layout = new kendo.Layout("layout-template");
+    // 渲染
+    layout.render("#application");
+    // 基本信息
+    router.route("/", function () {
+        layout.showIn("#content", editFormView);
+    });
+    $(function () {
+        //开户路由
+        router.start();
+    });
+</script>

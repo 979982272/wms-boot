@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<!-- SPA container define -->
+<div id="application"></div>
+<!-- loyout template define -->
+<script id="layout-template" type="text/x-kendo-template">
+    <div id="content"></div>
+</script>
+<!-- edit view template define -->
+<script id="editForm-template" type="text/x-kendo-template">
+    <div id="gridSplitter" style="height: 100%;border: none;" data-bind="style: {height: contentHeight} ">
+        <div id="form-pane" style="overflow: auto;">
+            <form id="editForm" style="padding: 15px;">
+                <div class="row">
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="id"
+                               class="top-label required">采购申请单号：</label>
+                        <input id="id" class="k-textbox validate[required]"
+                               data-bind="value:editModelData.id"
+
+                                >
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="vendorId"
+                               class="top-label required">供应商编码：</label>
+                        <input id="vendorId" data-role="dropdownlist" data-value-field="id"
+                               data-text-field="text"
+                               class="validate[required]"
+                               data-bind="value:editModelData.vendorId,source:vendorIdDataSource"
+                               data-value-primitive="true"
+                               data-auto-bind="true" data-filter="contains"
+                               data-change="editFormModel.changeVendor"
+                                >
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="warehouseId"
+                               class="top-label required">仓库编码：</label>
+                        <input id="warehouseId" data-role="dropdownlist" data-value-field="id"
+                               data-text-field="text"
+                               class="validate[required]"
+                               data-bind="value:editModelData.warehouseId,source:warehouseIdDataSource"
+                               data-value-primitive="true"
+                               data-auto-bind="true" data-filter="contains"
+                               data-change="editFormModel.changeWarehouse"
+                                >
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="orderDate"
+                               class="top-label required">订单日期：</label>
+                        <input id="orderDate" class="validate[required]"
+                               data-bind="value:editModelData.orderDate"
+                               data-role="datepicker"
+                                >
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="arrivalDate"
+                               class="top-label required">到货日期：</label>
+                        <input id="arrivalDate" class="validate[required]"
+                               data-bind="value:editModelData.arrivalDate"
+                               data-role="datepicker"
+                                >
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="remark"
+                               class="top-label ">备注：</label>
+                        <input id="remark" class="k-textbox "
+                               data-bind="value:editModelData.remark"
+                                >
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <button name="saveEditInfo" id="saveEditInfo" class="k-button" type="button" data-role="button"
+                                role="button"
+                                data-bind="events: {click: pushOurchaseOrder}"><span
+                                class="fa fa-arrow-down"></span>下推采购订单
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div id="grid-pane" style="overflow: hidden;">
+            <div id="indexGrid" style="height: 100%" data-bind="source:purchaseOrderPart"></div>
+        </div>
+    </div>
+</script>
+</body>
+<script>
+    var gridName = "indexGrid";
+    // 数据模型
+    var editFormModel = kendo.observable({
+        editModelData: {},
+        purchaseOrderPart: [],
+        oldPurchaseAmount: {},
+        op: "create",
+        contentHeight: document.documentElement.clientHeight + "px",
+        reset: function () {
+            var that = this;
+            that.set("editModelData", {});
+        },
+        pushOurchaseOrder: function () {
+            var that = this;
+            if ($("#editForm").validationEngine("validate")) {
+                var partDatas = that.purchaseOrderPart;
+                if (partDatas.length < 1) {
+                    $.core.showErrogMsg("请先添加产品!");
+                    return;
+                }
+                var oldPurchaseAmounts = that.get("oldPurchaseAmount");
+                for (var i = 0; i < partDatas.length; i++) {
+                    var item = partDatas[i];
+                    var oldAmount = oldPurchaseAmounts[item.goodsId];
+                    if (isEmpty(item.purchaseAmount) || item.purchaseAmount < 1) {
+                        $.core.showErrogMsg("第【" + (i + 1) + "】行中的采购数量不可为空并且必须大于零!");
+                        return;
+                    }
+                    if (item.purchaseAmount > oldAmount) {
+                        $.core.showErrogMsg("第【" + (i + 1) + "】行中的采购数量不可大于【" + oldAmount + "】!");
+                        return;
+                    }
+                    if (isEmpty(item.unitPrice) || item.unitPrice < 1) {
+                        $.core.showErrogMsg("第【" + (i + 1) + "】行中的采购价格不可为空并且必须大于零!");
+                        return;
+                    }
+                    if (isEmpty(item.unitPrice) || item.unitPrice < 0) {
+                        $.core.showErrogMsg("第【" + (i + 1) + "】行中的税率不可为空并且需要大于或者等于零!");
+                        return;
+                    }
+                }
+                var req = {};
+                var info;
+                info = jQuery.extend(true, {}, that.get("editModelData"));
+                $.extend(req, info);
+                $.extend(req, {purchaseOrderParts: partDatas});
+                $.ajax({
+                    url: "/crm/purchase/purchaseOrder/savePurchaseOrderByApplyPush",
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify(req),
+                    success: function (res) {
+                        if (res.status) {
+                            $("#saveEditInfo").attr("disabled", true);
+                            that.set("op", "update");
+                            if (isNotEmpty(res.other)) {
+                                that.set("editModelData", res.other.purchaseApply);
+                            }
+                            $.core.showMsg(res.msg)
+                        } else {
+                            $.core.showErrogMsg(res.msg);
+                        }
+                    }
+                })
+            }
+        },
+        back: function () {
+            history.back(-1);
+        },
+        changeWarehouse: function (e) {
+            var that = editFormModel;
+            var value = this.value();
+            var text = this.text();
+            that.set("editModelData.warehouseId", value);
+            that.set("editModelData.warehouseName", text);
+        },
+        changeVendor: function (e) {
+            var that = editFormModel;
+            var value = this.value();
+            var text = this.text();
+            that.set("editModelData.vendorId", value);
+            that.set("editModelData.vendorName", text);
+        },
+        vendorIdDataSource: getDropDownDataSource('/base/vendor/findVendorCombo'),
+        warehouseIdDataSource: getDropDownDataSource('/base/warehouse/findWarehouseCombo')
+    });
+
+    // 初始化
+    function initEditForm() {
+        $("#gridSplitter").kendoSplitter({
+            animation: false,
+            orientation: "vertical",
+            panes: [
+                {collapsible: true, resizable: true, scrollable: true, size: "28%"},
+                {collapsible: false, resizable: true, scrollable: true}
+            ]
+        });
+        var id = '${purchaseApplyId}';
+        readOnlyById("id")
+        setGrid();
+        editFormModel.op = "create";
+        getDataInfoById("/crm/purchase/purchaseOrder/getPurchaseOrder?id=" + id, function (res) {
+            if (res.status) {
+                var purchaseOrderParts = res.other.modelData.purchaseOrderParts;
+                editFormModel.set("editModelData", res.other.modelData);
+                editFormModel.set("purchaseOrderPart", purchaseOrderParts);
+                var oldPurchase = {};
+                for(var i=0;i<purchaseOrderParts.length;i++){
+                    oldPurchase[purchaseOrderParts[i].goodsId] = purchaseOrderParts[i].purchaseAmount;
+                }
+                editFormModel.set("oldPurchaseAmount", oldPurchase);
+            } else {
+                $.core.showErrogMsg(res.msg);
+            }
+        });
+    }
+    // 初始化表格
+    function setGrid() {
+        $("#" + gridName).kendoGrid({
+                    sortable: {mode: "multiple", allowUnsort: true},
+                    allowCopy: true,
+                    filterable: {
+                        mode: "row,menu"
+                    },
+                    resizable: true,
+                    editable: false,
+                    reorderable: true,
+                    scrollable: {virtual: false},
+                    columns: [
+                        {
+                            filterable: false,
+                            field: "goodsId",
+                            width: "140px",
+                            title: "产品编码"
+                        }
+                        ,
+                        {
+                            filterable: false,
+                            field: "goodsName",
+                            width: "240px",
+                            title: "产品名称"
+                        }
+                        ,
+                        {
+                            filterable: false,
+                            field: "goodsUnitName",
+                            width: "120px",
+                            title: "单位名称"
+                        }
+                        ,
+                        {
+                            filterable: false,
+                            field: "goodsModel",
+                            width: "120px",
+                            title: "规格型号"
+                        }
+                        ,
+                        {
+                            filterable: false,
+                            field: "purchaseAmount",
+                            width: "140px",
+                            title: "采购数量",
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "purchaseAmount",
+                                    gridName: gridName,
+                                    width: "120px",
+                                    value: e.purchaseAmount,
+                                    type: "number"
+                                });
+                            }
+                        }
+                        ,
+                        {
+                            filterable: false,
+                            field: "unitPrice",
+                            width: "140px",
+                            title: "采购价格",
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "unitPrice",
+                                    gridName: gridName,
+                                    width: "120px",
+                                    value: e.unitPrice,
+                                    type: "number"
+                                });
+                            }
+                        }, {
+                            filterable: false,
+                            field: "rate",
+                            width: "140px",
+                            title: "税率(%)",
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "unitPrice",
+                                    gridName: gridName,
+                                    width: "120px",
+                                    value: e.rate,
+                                    type: "number"
+                                });
+                            }
+                        },
+                        {
+                            filterable: false,
+                            field: "remark",
+                            width: "240",
+                            title: "备注",
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "remark",
+                                    gridName: gridName,
+                                    width: "240px"
+                                });
+                            }
+                        }
+                    ],
+                    filterable: {
+                        mode: "row,menu",
+                        messages: messages,
+                        operators: {
+                            string: operators
+                        }
+                        ,
+                        extra: true
+                    }, dataBound: function (e) {
+                        gridOnDataBound();
+                    }
+                }
+        )
+        ;
+        $("#" + gridName).kendoTooltip({
+            filter: "td[tipflag='hasTooltip']", position: "top", content: function (e) {
+                var field = $(e.target).attr("datafield");
+                var dataItem = $("#" + gridName).data("kendoGrid").dataItem(e.target.closest("tr"));
+                return dataItem[field];
+            }
+        }).data("kendoTooltip");
+    }
+    /**
+     * 添加产品
+     */
+    function addGoods() {
+        var vendorId = editFormModel.get("editModelData.vendorId");
+        if (isEmpty(vendorId)) {
+            $.core.showErrogMsg("请先选择供应商!");
+            return;
+        }
+        $.core.open("${ctx}/base/goods/" + vendorId + "/multipleSelectGoods", "添加产品", {
+            width: "980px",
+            height: "580px",
+            close: function () {
+                var multipleSelectGoods = $.core.data("multipleSelectGoods");
+                if (isNotEmpty(multipleSelectGoods)) {
+                    var dataSource = $("#" + gridName).data("kendoGrid").dataSource;
+                    var data = dataSource.data();
+                    var goodsIds = {};
+                    for (var i = 0; i < data.length; i++) {
+                        goodsIds[data[i].goodsId] = true;
+                    }
+                    $.each(multipleSelectGoods, function (index) {
+                        var info = multipleSelectGoods[index];
+                        var dataItem = {};
+                        if (goodsIds[info.goodsId]) {
+                            return;
+                        }
+                        dataItem["goodsId"] = info.goodsId;
+                        dataItem["goodsName"] = info.goodsName;
+                        dataItem["goodsUnitName"] = info.goodsUnitName;
+                        dataItem["goodsModel"] = info.goodsModel;
+                        dataItem["applyAmount"] = 0;
+                        dataItem["unitPrice"] = info.normalPrice;
+                        dataItem["remark"] = "";
+                        dataSource.add(dataItem);
+                    })
+                }
+            }
+        })
+    }
+    //基本信息页面
+    var editFormView = new kendo.View("editForm-template", {
+        model: editFormModel, init: initEditForm
+    });
+    // Routing
+    var router = new kendo.Router();
+    // Layout
+    var layout = new kendo.Layout("layout-template");
+    // 渲染
+    layout.render("#application");
+    // 基本信息
+    router.route("/", function () {
+        layout.showIn("#content", editFormView);
+    });
+    $(function () {
+        //开户路由
+        router.start();
+    });
+</script>

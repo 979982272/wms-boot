@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body>
+<table id="table">
+</table>
+<input type="button" onclick="sub()" value="提交">
+</body>
+<script>
+    $(function () {
+        $.ajax({
+            url: "/system/dataBase/loadData",
+            type: "post",
+            success: function (res) {
+                var $obj = $("#table");
+                var content = "";
+                for (var i = 0; i < res.length; i++) {
+                    var data = res[i];
+                    content += "<tr>";
+                    for (var key in data) {
+                        content += "<td><input type='checkbox' name='tableName' value='" + data[key] + "'> " + "</td>";
+                        content += "<td>" + data[key] + "</td>";
+                        content += "<td><input type='text' name='packName' id='packName" + data[key] + "'>" + "</td>";
+                    }
+                    content += "</tr>"
+                }
+                $obj.append(content)
+            }
+        });
+    });
+    function sub() {
+        var tables = new Array;
+        var packs = new Array;
+        $('input[name="tableName"]:checked').each(function (i) {
+            tables[i] = $(this).val();
+            packs[i] = $("#packName" + $(this).val()).val();
+        });
+        tables = tables.join(",");
+        packs = packs.join(",");
+        $.ajax({
+            url: "/system/dataBase/sub",
+            type: "post",
+            data: {
+                tables: tables,
+                packs: packs
+            },
+            dataType: "json",
+            success: function (res) {
+                console.log(res);
+            }
+        });
+    }
+</script>
+</html>

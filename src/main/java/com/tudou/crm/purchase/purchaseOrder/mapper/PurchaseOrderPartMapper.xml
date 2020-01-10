@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tudou.crm.purchase.purchaseOrder.mapper.PurchaseOrderPartMapper">
+    <resultMap id="BaseResultMap" type="com.tudou.crm.purchase.purchaseOrder.entity.PurchaseOrderPart">
+        <!--
+          WARNING - @mbggenerated
+        -->
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="purchase_order_id" property="purchaseOrderId" jdbcType="VARCHAR"/>
+        <result column="from_order_part" property="fromOrderPart" jdbcType="VARCHAR"/>
+        <result column="goods_id" property="goodsId" jdbcType="VARCHAR"/>
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="goods_unit_id" property="goodsUnitId" jdbcType="VARCHAR"/>
+        <result column="goods_unit_name" property="goodsUnitName" jdbcType="VARCHAR"/>
+        <result column="goods_model" property="goodsModel" jdbcType="VARCHAR"/>
+        <result column="purchase_amount" property="purchaseAmount" jdbcType="DECIMAL"/>
+        <result column="receiving_amount" property="receivingAmount" jdbcType="DECIMAL"/>
+        <result column="unit_price" property="unitPrice" jdbcType="DECIMAL"/>
+        <result column="unit_price_rate" property="unitPriceRate" jdbcType="DECIMAL"/>
+        <result column="total_price" property="totalPrice" jdbcType="DECIMAL"/>
+        <result column="total_price_rate" property="totalPriceRate" jdbcType="DECIMAL"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="server_flag" property="serverFlag" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="create_emp" property="createEmp" jdbcType="VARCHAR"/>
+        <result column="create_emp_id" property="createEmpId" jdbcType="VARCHAR"/>
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+        <result column="modify_emp" property="modifyEmp" jdbcType="VARCHAR"/>
+        <result column="modify_emp_id" property="modifyEmpId" jdbcType="VARCHAR"/>
+        <result column="rate" property="rate" jdbcType="DECIMAL"/>
+    </resultMap>
+    <select id="findPurchaseOrderPartByPurchaseId" resultMap="BaseResultMap">
+        SELECT * FROM crm_purchase_order_part WHERE  purchase_order_id = #{id}
+  </select>
+    <select id="findPurchaseOrderPartByPartId" resultMap="BaseResultMap">
+        SELECT * FROM crm_purchase_order_part WHERE purchase_order_id =
+        (SELECT purchase_order_id from crm_purchase_order_part WHERE id = #{id})
+    </select>
+</mapper>

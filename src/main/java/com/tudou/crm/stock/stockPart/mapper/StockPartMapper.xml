@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tudou.crm.stock.stockPart.mapper.StockPartMapper">
+    <resultMap id="BaseResultMap" type="com.tudou.crm.stock.stockPart.entity.StockPart">
+        <!--
+          WARNING - @mbggenerated
+        -->
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="warehouse_id" property="warehouseId" jdbcType="VARCHAR"/>
+        <result column="warehouse_name" property="warehouseName" jdbcType="VARCHAR"/>
+        <result column="goods_id" property="goodsId" jdbcType="VARCHAR"/>
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="goods_unit_id" property="goodsUnitId" jdbcType="VARCHAR"/>
+        <result column="goods_unit_name" property="goodsUnitName" jdbcType="VARCHAR"/>
+        <result column="goods_model" property="goodsModel" jdbcType="VARCHAR"/>
+        <result column="total_stock_amount" property="totalStockAmount" jdbcType="DECIMAL"/>
+        <result column="stock_amount" property="stockAmount" jdbcType="DECIMAL"/>
+        <result column="in_stock_amount" property="inStockAmount" jdbcType="DECIMAL"/>
+        <result column="lock_stock_amount" property="lockStockAmount" jdbcType="DECIMAL"/>
+        <result column="unit_cost_price" property="unitCostPrice" jdbcType="DECIMAL"/>
+        <result column="unit_cost_price_rate" property="unitCostPriceRate" jdbcType="DECIMAL"/>
+        <result column="total_cost_price" property="totalCostPrice" jdbcType="DECIMAL"/>
+        <result column="total_cost_price_rate" property="totalCostPriceRate" jdbcType="DECIMAL"/>
+        <result column="server_flag" property="serverFlag" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="create_emp" property="createEmp" jdbcType="VARCHAR"/>
+        <result column="create_emp_id" property="createEmpId" jdbcType="VARCHAR"/>
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+        <result column="modify_emp" property="modifyEmp" jdbcType="VARCHAR"/>
+        <result column="modify_emp_id" property="modifyEmpId" jdbcType="VARCHAR"/>
+        <result column="delete_time" property="deleteTime" jdbcType="TIMESTAMP"/>
+        <result column="delete_emp" property="deleteEmp" jdbcType="VARCHAR"/>
+        <result column="delete_emp_id" property="deleteEmpId" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="findStockPartByWarehouseIdAndGoodsId" resultMap="BaseResultMap">
+        SELECT  * FROM crm_stock_part WHERE warehouse_id = #{warehouseId} AND  goods_id = #{goodsId} ORDER BY create_time DESC
+    </select>
+
+</mapper>

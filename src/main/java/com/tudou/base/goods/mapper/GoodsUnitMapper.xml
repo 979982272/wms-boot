@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tudou.base.goods.mapper.GoodsUnitMapper">
+    <resultMap id="BaseResultMap" type="com.tudou.base.goods.entity.GoodsUnit">
+        <!--
+          WARNING - @mbggenerated
+        -->
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="unit_name" property="unitName" jdbcType="VARCHAR"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="create_emp" property="createEmp" jdbcType="VARCHAR"/>
+        <result column="create_emp_id" property="createEmpId" jdbcType="VARCHAR"/>
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+        <result column="modify_emp" property="modifyEmp" jdbcType="VARCHAR"/>
+        <result column="modify_emp_id" property="modifyEmpId" jdbcType="VARCHAR"/>
+        <result column="server_flag" property="serverFlag" jdbcType="TINYINT"/>
+    </resultMap>
+    <select id="findGoodsUnitByUnitName" resultMap="BaseResultMap" parameterType="java.lang.String">
+        SELECT  * FROM eidp_goods_unit WHERE  unit_name = #{unitName}
+    </select>
+    <select id="findGoodsUnitByUnitNameAndNotId" resultMap="BaseResultMap">
+        SELECT  * FROM eidp_goods_unit WHERE  unit_name = #{unitName} AND  id !=#{id}
+    </select>
+</mapper>

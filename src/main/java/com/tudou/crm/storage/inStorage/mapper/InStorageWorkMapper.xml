@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tudou.crm.storage.inStorage.mapper.InStorageWorkMapper">
+    <resultMap id="BaseResultMap" type="com.tudou.crm.storage.inStorage.entity.InStorageWork">
+        <!--
+          WARNING - @mbggenerated
+        -->
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="from_order" property="fromOrder" jdbcType="VARCHAR"/>
+        <result column="order_type" property="orderType" jdbcType="VARCHAR"/>
+        <result column="order_date" property="orderDate" jdbcType="TIMESTAMP"/>
+        <result column="vendor_id" property="vendorId" jdbcType="VARCHAR"/>
+        <result column="vendor_name" property="vendorName" jdbcType="VARCHAR"/>
+        <result column="warehouse_id" property="warehouseId" jdbcType="VARCHAR"/>
+        <result column="warehouse_name" property="warehouseName" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="server_flag" property="serverFlag" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="create_emp" property="createEmp" jdbcType="VARCHAR"/>
+        <result column="create_emp_id" property="createEmpId" jdbcType="VARCHAR"/>
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+        <result column="modify_emp" property="modifyEmp" jdbcType="VARCHAR"/>
+        <result column="modify_emp_id" property="modifyEmpId" jdbcType="VARCHAR"/>
+        <result column="audit_time" property="auditTime" jdbcType="TIMESTAMP"/>
+        <result column="audit_emp" property="auditEmp" jdbcType="VARCHAR"/>
+        <result column="audit_emp_id" property="auditEmpId" jdbcType="VARCHAR"/>
+        <collection property="inStorageWorkParts" javaType="ArrayList" column="id"
+                    ofType="com.tudou.crm.storage.inStorage.entity.InStorageWorkPart"
+                    select="com.tudou.crm.storage.inStorage.mapper.InStorageWorkPartMapper.findInStorageWorkPartByStorageId"
+                    fetchType="eager">
+            <id column="id" property="id" jdbcType="VARCHAR"/>
+            <result column="from_order_part" property="fromOrderPart" jdbcType="VARCHAR"/>
+            <result column="in_storage_work" property="inStorageWork" jdbcType="VARCHAR"/>
+            <result column="goods_id" property="goodsId" jdbcType="VARCHAR"/>
+            <result column="goods_name" property="goodsName" jdbcType="VARCHAR"/>
+            <result column="goods_unit_id" property="goodsUnitId" jdbcType="VARCHAR"/>
+            <result column="goods_unit_name" property="goodsUnitName" jdbcType="VARCHAR"/>
+            <result column="goods_model" property="goodsModel" jdbcType="VARCHAR"/>
+            <result column="plan_amount" property="planAmount" jdbcType="DECIMAL"/>
+            <result column="receiving_amount" property="receivingAmount" jdbcType="DECIMAL"/>
+            <result column="remark" property="remark" jdbcType="VARCHAR"/>
+            <result column="server_flag" property="serverFlag" jdbcType="INTEGER"/>
+            <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+            <result column="create_emp" property="createEmp" jdbcType="VARCHAR"/>
+            <result column="create_emp_id" property="createEmpId" jdbcType="VARCHAR"/>
+            <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+            <result column="modify_emp" property="modifyEmp" jdbcType="VARCHAR"/>
+            <result column="modify_emp_id" property="modifyEmpId" jdbcType="VARCHAR"/>
+        </collection>
+    </resultMap>
+    <select id="findInStorageWorkById" resultMap="BaseResultMap">
+    SELECT * FROM  crm_in_storage_work WHERE  id = #{id}
+  </select>
+    <update id="updateInStorageWorkStatusById">
+        UPDATE crm_in_storage_work SET status = #{receivingCode} WHERE id = #{id}
+    </update>
+</mapper>

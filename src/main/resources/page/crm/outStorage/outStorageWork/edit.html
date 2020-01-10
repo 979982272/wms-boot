@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<!-- SPA container define -->
+<div id="application"></div>
+<!-- loyout template define -->
+<script id="layout-template" type="text/x-kendo-template">
+    <div id="content"></div>
+</script>
+<!-- edit view template define -->
+<script id="editForm-template" type="text/x-kendo-template">
+    <div id="gridSplitter" style="height: 100%;border: none;" data-bind="style: {height: contentHeight} ">
+        <div id="editForm-pane" style="overflow: auto;">
+            <form id="editForm" style="padding: 15px;">
+                <div class="row">
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="id"
+                               class="top-label ">入库单号：</label>
+                        <input id="id" class="k-textbox "
+                               data-bind="value:editModelData.id"
+                               readonly
+                                >
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="orderType"
+                               class="top-label ">订单类型：</label>
+                        <input id="orderType" data-role="dropdownlist" data-value-field="id"
+                               data-text-field="text"
+                               class=" "
+                               data-bind="value:editModelData.orderType,source:orderTypeDataSource"
+                               data-value-primitive="true" readonly
+                               data-auto-bind="true" data-filter="contains"
+                                >
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="orderDate"
+                               class="top-label ">订单日期：</label>
+                        <input id="orderDate" class=""
+                               data-bind="value:editModelData.orderDate"
+                               readonly data-role="datepicker"
+                                >
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="customerId"
+                               class="top-label required">客户：</label>
+                        <input id="customerId" data-role="dropdownlist" data-value-field="id"
+                               data-text-field="text" readonly
+                               class="validate[required]"
+                               data-bind="value:editModelData.customerId,source:customerDataSource"
+                               data-value-primitive="true"
+                               data-auto-bind="true" data-filter="contains"
+                                >
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="warehouseId"
+                               class="top-label ">仓库编码：</label>
+                        <input id="warehouseId" data-role="dropdownlist" data-value-field="id"
+                               data-text-field="text"
+                               class=" " readonly
+                               data-bind="value:editModelData.warehouseId,source:warehouseIdDataSource"
+                               data-value-primitive="true"
+                               data-auto-bind="true" data-filter="contains"
+                                >
+                    </div>
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <label for="remark"
+                               class="top-label ">备注：</label>
+                        <input id="remark" class="k-textbox "
+                               data-bind="value:editModelData.remark"
+                               readonly
+                                >
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 col-sm-3 col-xs-3">
+                        <button name="back" class="k-button" type="button" data-role="button"
+                                role="button"
+                                data-bind="events: {click: back}"><span
+                                class="fa fa-mail-reply"></span>返回
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div id="grid-pane" style="overflow: hidden;">
+            <div id="indexGrid" style="height: 100%" data-bind="source:outStorageWorkParts"></div>
+        </div>
+    </div>
+</script>
+</body>
+<script>
+    var gridName = "indexGrid";
+    var id;
+    // 数据模型
+    var editFormModel = kendo.observable({
+        editModelData: {},
+        outStorageWorkParts: [],
+        op: "create",
+        contentHeight: document.documentElement.clientHeight - 37 + "px",
+        reset: function () {
+            var that = this;
+            that.set("editModelData", {});
+        },
+        back: function () {
+            history.back(-1);
+        },
+        outStorage: function (dataItem) {
+            $.core.showLoading();
+            $.ajax({
+                url: "${ctx}/crm/outStorage/outStorageWorkPart/outStorageByPart",
+                type: "post",
+                dataType: "json",
+                contentTdype: "application/json",
+                data: {
+                    id: dataItem.id,
+                    deliveryAmount: dataItem.waitDeliveryAmount
+                },
+                success: function (res) {
+                    $.core.hideLoading();
+                    setGridData(id);
+                    if (res.status) {
+                        $.core.showMsg(res.msg);
+                    } else {
+                        $.core.showErrogMsg(res.msg);
+                    }
+                }, error: function (res) {
+                    $.core.hideLoading();
+                    $.core.showErrogMsg("网络错误!")
+                }
+            });
+        },
+        onDataBound: function () {
+            $("#" + gridName + " tbody tr").each(function () {
+                var currentDataItem = $("#" + gridName).data("kendoGrid").dataItem($(this));
+                if (currentDataItem == null) {
+                    return false;
+                }
+                if (currentDataItem.deliveryAmount == currentDataItem.planAmount) {
+                    $(this).find(".k-grid-opEdit").remove();
+                }
+            })
+        }
+        , orderTypeDataSource: getStaticDataSourceByCommon('enum_extra.enums.OrderTypeEnum')
+        , warehouseIdDataSource: getDropDownDataSource('/base/warehouse/findWarehouseCombo'),
+        customerDataSource: getDropDownDataSource("/base/customer/findCustomerCombo")
+    });
+    // 初始化
+    function initEditForm() {
+        id = '${id}';
+        readOnlyById("id");
+        readOnlyById("remark");
+        editFormModel.op = "update";
+        $("#gridSplitter").kendoSplitter({
+            animation: false,
+            orientation: "vertical",
+            panes: [
+                {collapsible: true, resizable: true, scrollable: true, size: "28%"},
+                {collapsible: false, resizable: true, scrollable: true}
+            ]
+        });
+        setGrid()
+        setGridData(id);
+    }
+    function setGridData(id) {
+        getDataInfoById("/crm/outStorage/outStorageWork/" + id + "/getDataInfoById", function (res) {
+            if (res.status) {
+                editFormModel.set("editModelData", res.other.modelData);
+                editFormModel.set("outStorageWorkParts", res.other.modelData.outStorageWorkParts);
+                editFormModel.onDataBound()
+            } else {
+                $.core.showErrogMsg(res.msg);
+            }
+        });
+    }
+    function setGrid() {
+        $("#" + gridName).kendoGrid({
+                    pageable: {
+                        pageSizes: [20, 50, 100, 500],
+                        pageSize: 20,
+                        refresh: true
+                    },
+                    sortable: {mode: "multiple", allowUnsort: true},
+                    allowCopy: true,
+                    filterable: {
+                        mode: "row,menu"
+                    },
+                    resizable: true,
+                    editable: false,
+                    reorderable: true,
+                    scrollable: {virtual: false},
+                    columns: [
+                        {
+                            title: "操作",
+                            width: "60px",
+                            command: [{
+                                name: "opEdit",
+                                text: '<span class="fa fa-download fa-rotate-270 fa-fw"></span>',
+                                title: "出库",
+                                click: function (e) {
+                                    e.preventDefault();
+                                    var dataItem = $("#" + gridName).data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+                                    editFormModel.outStorage(dataItem);
+                                }
+                            }]
+                        },
+                        {
+                            field: "goodsId",
+                            width: "140px",
+                            title: "产品编码"
+                        }
+                        ,
+                        {
+                            field: "goodsName",
+                            width: "140px",
+                            title: "产品名称"
+                        }
+                        ,
+                        {
+                            field: "goodsUnitId",
+                            width: "140px",
+                            title: "单位编码"
+                        }
+                        ,
+                        {
+                            field: "goodsUnitName",
+                            width: "140px",
+                            title: "单位名称"
+                        }
+                        ,
+                        {
+                            field: "goodsModel",
+                            width: "140px",
+                            title: "规格型号"
+                        }
+                        ,
+                        {
+                            field: "planAmount",
+                            width: "140px",
+                            title: "计划数量",
+                            attributes: {
+                                style: "text-align:right"
+                            }
+                        }
+                        ,
+                        {
+                            field: "deliveryAmount",
+                            width: "140px",
+                            title: "出库数量",
+                            attributes: {
+                                style: "text-align:right"
+                            }
+                        },
+                        {
+                            field: "waitDeliveryAmount",
+                            width: "140px",
+                            title: "待出库数量",
+                            template: function (e) {
+                                e.waitDeliveryAmount = e.planAmount - e.deliveryAmount;
+                                return formatText({
+                                    tagName: "waitDeliveryAmount",
+                                    value: e.waitDeliveryAmount,
+                                    type: "number",
+                                    gridName: gridName
+                                });
+                            }
+                        }
+                        ,
+                        {
+                            field: "remark",
+                            width: "140",
+                            title: "备注"
+                        }
+
+                    ],
+                    filterable: {
+                        mode: "row,menu",
+                        messages: messages,
+                        operators: {
+                            string: operators
+                        }
+                        ,
+                        extra: true
+                    }, dataBound: function (e) {
+                        gridOnDataBound();
+                        editFormModel.onDataBound;
+                    }
+                }
+        )
+        ;
+        $("#" + gridName).kendoTooltip({
+            filter: "td[tipflag='hasTooltip']", position: "top", content: function (e) {
+                var field = $(e.target).attr("datafield");
+                var dataItem = $("#" + gridName).data("kendoGrid").dataItem(e.target.closest("tr"));
+                return dataItem[field];
+            }
+        }).data("kendoTooltip");
+    }
+
+
+    //基本信息页面
+    var editFormView = new kendo.View("editForm-template", {
+        model: editFormModel, init: initEditForm
+    });
+    // Routing
+    var router = new kendo.Router();
+    // Layout
+    var layout = new kendo.Layout("layout-template");
+    // 渲染
+    layout.render("#application");
+    // 基本信息
+    router.route("/", function () {
+        layout.showIn("#content", editFormView);
+    });
+    $(function () {
+        //开户路由
+        router.start();
+    });
+</script>

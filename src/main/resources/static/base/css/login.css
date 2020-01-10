@@ -1,0 +1,181 @@
+body {
+    font-family: "Microsoft YaHei" ! important;
+}
+
+.middle {
+    background: url("/static/base/images/login/bg.png") no-repeat left;
+    width: 100%;
+    height: 100%;
+    background-size: 100% 100%;
+    position: absolute;
+    text-align: center;
+    overflow: hidden;
+    display: table;
+    top: 0;
+    left: 0;
+    float: left;
+}
+
+.navbar-fixed-bottom {
+    text-align: center;
+    font-weight: 200;
+}
+
+.navbar-fixed-bottom img {
+    border: 0;
+    padding: 10px 10px;
+    margin-bottom: 20px;
+}
+
+.navbar-fixed-bottom a {
+    padding: 0px 250px;
+}
+
+.logo {
+    margin-top: 170px;
+    position: absolute;
+    right: 200px;
+}
+
+.loginFrm {
+    background: url("/static/base/images/login/loginBg.png") no-repeat;
+    height: 430px;
+    width: 430px;
+    position: absolute;
+    text-align: center;
+    /*left:50%;
+    margin-left:-215px;*/
+    right: 180px;
+    z-index: 9999;
+    top: 120px;
+}
+
+.tab {
+    padding: 10px;
+}
+
+.tab UL {
+    zoom: 1;
+    clear: both;
+    margin: 0;
+    padding: 0;
+}
+
+.tab UL:after {
+    display: block;
+    height: 0px;
+    visibility: hidden;
+    clear: both;
+    content: "";
+}
+
+.tab UL LI {
+    text-align: center;
+    vertical-align: middle;
+    line-height: 30px;
+    font-size: 18px;
+    width: 190px;
+    display: inline;
+    float: left;
+    height: 36px;
+    color: #fff;
+    font-weight: 100;
+    cursor: pointer !important;
+    border-bottom: 2px solid #e0e9f3;
+}
+
+.tab UL LI.on {
+    color: #fff;
+    border-bottom: 2px solid #4b8ada;
+}
+
+.tabList {
+    height: 400px;
+}
+
+.tabList .tabContent {
+    padding: 10px;
+    display: none;
+}
+
+.tabList .block {
+    display: block;
+}
+
+.form-signin {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.form-signin .form-control {
+    position: relative;
+    font-size: 16px;
+    height: auto;
+    padding: 6px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.form-signin .form-control:focus {
+    z-index: 2;
+}
+
+.login-btn {
+    background: url("/static/base/images/login/loginBtn.png") no-repeat center;
+    border: 0px;
+    width: 250px;
+    height: 42px;
+    font-size: 22px;
+    line-height: 42px;
+    color: #fff;
+    font-weight: 100;
+}
+
+.qr_span {
+    width: 200px;
+    height: 200px;
+    margin-left: -20px;
+}
+
+.qr_span img {
+    width: 200px;
+    position: absolute;
+}
+
+.qr_invalid {
+    height: 200px;
+    width: 200px;
+    text-align: center;
+    position: relative;
+    display: none;
+}
+
+.qr_invalid_span {
+    background: #000;
+    filter: Alpha(opacity=60);
+    opacity: .6;
+    height: 200px;
+    position: absolute;
+    width: 200px;
+    z-index: 1000;
+}
+
+.qr_invalid_tips {
+    color: #fff;
+    cursor: pointer;
+    line-height: 20px;
+    position: absolute;
+    text-align: center;
+    top: 80px;
+    width: 200px;
+    z-index: 1000;
+}
+
+.input-group-addon {
+    color: #999;
+}
+
+.k-widget.k-tooltip {
+    background: none;
+}

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<div id="indexGrid" style="height: 100%"></div>
+</body>
+<script id="detail-template" type="text/x-kendo-template">
+    <div class="detailGrid"></div>
+</script>
+<script>
+    var detailGridName = "detailGrid";
+    var expandedRow;
+    var gridName = "indexGrid";
+    var orderStatusDataSource = getStaticDataSourceByCommon("enum_extra.enums.storage.StorageStatusEnum");
+    var orderTypeDataSource = getStaticDataSourceByCommon("enum_extra.enums.OrderTypeEnum");
+    $(function () {
+        setGrid();
+        setGridDataSource();
+    });
+    // 初始化表格
+    function setGrid() {
+        $("#" + gridName).kendoGrid({
+                    toolbar: [
+                        {
+                            template: "<button id=\"opExport\" name=\"opExport\" class = \"k-button \" type=\"button\" data-role=\"button\" role=\"button\" aria-disabled=\"false\"  onclick=\"opExport();\"><span class=\"fa fa-cloud-download fa-fw\"><\/span>导出<\/button>",
+                            name: "opExport",
+                            text: "导出"
+                        }
+                    ],
+                    pageable: {
+                        pageSizes: [20, 50, 100, 500],
+                        pageSize: 20,
+                        refresh: true
+                    },
+                    sortable: {mode: "multiple", allowUnsort: true},
+                    allowCopy: true,
+                    filterable: {
+                        mode: "row,menu"
+                    },
+                    resizable: true,
+                    editable: false,
+                    reorderable: true,
+                    scrollable: {virtual: false},
+                    columns: [
+                        {
+                            field: "indexCkAll",
+                            sortable: false,
+                            filterable: false,
+                            width: "35px",
+                            headerTemplate: '<input type="checkbox" class="k-checkbox" id="indexCkAll"/><label for="indexCkAll" class="k-checkbox-label" onclick="javascript:if($(\'#indexCkAll\').is(\':checked\')){$(\'input[name=opindexCheck]\').prop(\'checked\',false);} else {$(\'input[name=opindexCheck]\').prop(\'checked\',true)}"></label>',
+                            template: function (e) {
+                                return '<input type="checkbox" name="opindexCheck" class="k-checkbox" data-type="ck" id="ck' + e.uid + '"/><label for="ck' + e.uid + '" class="k-checkbox-label" ></label>';
+                            }
+
+                        },
+                        {
+                            title: "操作",
+                            width: "80px",
+                            command: [{
+                                name: "opEdit",
+                                text: '<span class="fa fa-eye fa-fw"></span>',
+                                title: "查看",
+                                click: function (e) {
+                                    e.preventDefault();
+                                    var dataItem = $("#" + gridName).data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+                                    editIndexInfo(dataItem.id);
+                                }
+                            }, {
+                                name: "opInStorage",
+                                text: '<span class="fa fa-download fa-fw"></span>',
+                                title: "整单入库",
+                                click: function (e) {
+                                    e.preventDefault();
+                                    var dataItem = $("#" + gridName).data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+                                    inStorage(dataItem.id);
+                                }
+                            }]
+                        },
+                        {
+                            field: "id",
+                            width: "180px",
+                            title: "入库单号"
+                        }
+                        ,
+                        {
+                            field: "fromOrder",
+                            width: "180px",
+                            title: "来源单号"
+                        }
+                        ,
+                        {
+                            field: "status",
+                            width: "140px",
+                            title: "订单状态",
+                            filterable: {
+                                cell: {
+                                    template: function (args) {
+                                        args.element.kendoComboBox({
+                                            dataSource: orderStatusDataSource,
+                                            dataValueField: "id",
+                                            dataTextField: "text",
+                                            valuePrimitive: true,
+                                            autoBind: true
+                                        });
+                                    },
+                                    showOperators: false
+                                }
+                            },
+                            template: function (e) {
+                                return transCodeToNameByDataSource(orderStatusDataSource, e.status);
+                            }
+                        }
+                        ,
+                        {
+                            field: "orderType",
+                            width: "140px",
+                            title: "订单类型",
+                            filterable: {
+                                cell: {
+                                    template: function (args) {
+                                        args.element.kendoComboBox({
+                                            dataSource: orderTypeDataSource,
+                                            dataValueField: "id",
+                                            dataTextField: "text",
+                                            valuePrimitive: true,
+                                            autoBind: true
+                                        });
+                                    },
+                                    showOperators: false
+                                }
+                            },
+                            template: function (e) {
+                                return transCodeToNameByDataSource(orderTypeDataSource, e.orderType);
+                            }
+                        }
+                        ,
+                        {
+                            field: "orderDate",
+                            width: "140px",
+                            title: "订单日期"
+                        }
+                        ,
+                        {
+                            field: "vendorName",
+                            width: "140px",
+                            title: "供应商名称"
+                        }
+                        ,
+                        {
+                            field: "warehouseName",
+                            width: "140px",
+                            title: "仓库名称"
+                        }
+                        ,
+                        {
+                            field: "remark",
+                            width: "140px",
+                            title: "备注"
+                        }
+                        ,
+                        {
+                            field: "createTime",
+                            width: "140px",
+                            title: "创建时间"
+                        }
+                        ,
+                        {
+                            field: "createEmp",
+                            width: "140px",
+                            title: "创建人"
+                        }
+                        ,
+                        {
+                            field: "createEmpId",
+                            width: "140px",
+                            title: "创建人编号"
+                        }
+                        ,
+                        {
+                            field: "modifyTime",
+                            width: "140px",
+                            title: "修改时间"
+                        }
+                        ,
+                        {
+                            field: "modifyEmp",
+                            width: "140px",
+                            title: "修改人"
+                        }
+                        ,
+                        {
+                            field: "modifyEmpId",
+                            width: "140px",
+                            title: "修改人编号"
+                        }
+                        ,
+                        {
+                            field: "auditTime",
+                            width: "140px",
+                            title: "审核时间"
+                        }
+                        ,
+                        {
+                            field: "auditEmp",
+                            width: "140px",
+                            title: "审核人"
+                        }
+                        ,
+                        {
+                            field: "auditEmpId",
+                            width: "140px",
+                            title: "审核人编号"
+                        }
+
+                    ],
+                    detailTemplate: kendo.template($("#detail-template").html()),
+                    detailExpand: setDetailGrid,
+                    filterable: {
+                        mode: "row,menu",
+                        messages: messages,
+                        operators: {
+                            string: operators
+                        }
+                        ,
+                        extra: true
+                    }, dataBound: function (e) {
+                        gridOnDataBound();
+                        onDataBound();
+                    }
+                }
+        )
+        ;
+        $("#" + gridName).kendoTooltip({
+            filter: "td[tipflag='hasTooltip']", position: "top", content: function (e) {
+                var field = $(e.target).attr("datafield");
+                var dataItem = $("#" + gridName).data("kendoGrid").dataItem(e.target.closest("tr"));
+                return dataItem[field];
+            }
+        }).data("kendoTooltip");
+    }
+
+    function setDetailGrid(e) {
+        e.preventDefault();
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#' + gridName).data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+        var detailRow = e.detailRow;
+        var dataItem = $("#" + gridName).data("kendoGrid").dataItem(expandedRow);
+        var grid = detailRow.find(".detailGrid").data("kendoGrid")
+        if (grid == undefined) {
+            detailRow.find(".detailGrid").kendoGrid({
+                        resizable: true,
+                        editable: false,
+                        reorderable: true,
+                        scrollable: {virtual: false},
+                        columns: [
+                            {
+                                filterable: false,
+                                locked: true,
+                                field: "goodsId",
+                                width: "140px",
+                                title: "产品编码"
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                locked: true,
+                                field: "goodsName",
+                                width: "140px",
+                                title: "产品名称"
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "goodsUnitId",
+                                width: "140px",
+                                title: "单位编码"
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "goodsUnitName",
+                                width: "140px",
+                                title: "单位名称"
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "goodsModel",
+                                width: "140px",
+                                title: "规格型号",
+                                footerTemplate: function (e) {
+                                    return "合计:"
+                                }
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "planAmount",
+                                width: "140px",
+                                title: "计划数量",
+                                attributes: {
+                                    style: "text-align:right"
+                                },
+                                footerTemplate: function (e) {
+                                    var data = e["planAmount"];
+                                    if (isNotEmpty(data)) {
+                                        return data["sum"];
+                                    }
+                                }
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "receivingAmount",
+                                width: "140px",
+                                title: "入库数量",
+                                attributes: {
+                                    style: "text-align:right"
+                                },
+                                footerTemplate: function (e) {
+                                    var data = e["receivingAmount"];
+                                    if (isNotEmpty(data)) {
+                                        return data["sum"];
+                                    }
+                                }
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "remark",
+                                width: "140px",
+                                title: "备注"
+                            }
+
+                        ],
+                        filterable: {
+                            mode: "row,menu",
+                            messages: messages,
+                            operators: {
+                                string: operators
+                            }
+                            ,
+                            extra: true
+                        }, dataBound: function (e) {
+                            gridOnDataBound();
+                        }
+                    }
+            );
+            var data = getDetailGridDataSource("/crm/inStorage/inStorageWorkPart/loadDetailData?id=" + dataItem.id)
+            var grid = detailRow.find(".detailGrid").data("kendoGrid");
+            grid.setDataSource(data);
+        }
+    }
+
+    function getDetailGridDataSource(url) {
+        var data = new kendo.data.DataSource({
+            schema: {
+                total: "total",
+                data: "data",
+                groups: "data",
+                aggregates: "aggregates",
+                type: "json",
+                errors: "errors"
+            },
+            aggregate: [
+                {field: "planAmount", aggregate: "sum"},
+                {field: "receivingAmount", aggregate: "sum"}
+            ],
+            serverPaging: true,
+            serverFiltering: true,
+            serverSorting: true,
+            pageSize: 20,
+            page: 1,
+            transport: {
+                read: {
+                    dataType: "json",
+                    type: "POST",
+                    contentType: "application/json",
+                    url: url
+                }, parameterMap: function (e) {
+                    return JSON.stringify(e);
+                }
+            }
+        });
+        return data;
+    }
+
+    // 绑定状态
+    function onDataBound() {
+        $("#" + gridName + " tbody tr").each(function () {
+            var currentDataItem = $("#" + gridName).data("kendoGrid").dataItem($(this));
+            if (currentDataItem == null) {
+                return false;
+            }
+            var status = parseInt(currentDataItem.status);
+            if (status >= 40) {
+                $(this).find(".k-grid-opInStorage").remove();
+            }
+        })
+    }
+
+    // 设置数据源
+    function setGridDataSource() {
+        var data = getGridDataSource("/crm/inStorage/inStorageWork/loadData")
+        var grid = $("#" + gridName).data("kendoGrid");
+        grid.setDataSource(data);
+    }
+
+    // 编辑
+    function editIndexInfo(id) {
+        window.location.href = '${ctx}/crm/inStorage/inStorageWork/edit?id=' + id;
+    }
+
+    // 入库
+    function inStorage(id) {
+        actionInfo({
+            url: "${ctx}/crm/inStorage/inStorageWork/inStorageByStorageId?ids=" + id,
+            gridName: gridName
+        })
+    }
+
+
+</script>

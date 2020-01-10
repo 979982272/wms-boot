@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<div id="layout">
+    <ul>
+        <li>实体类开发</li>
+        <li>表格开发</li>
+        <li>表单开发</li>
+    </ul>
+    <div id="entityLayout">
+        <div id="DBGrid" style="height: 100%"></div>
+    </div>
+    <div id="gridLayout" style="height: 100%;width:100%;border: none;">
+        <div id="gridSplitter" style="height: 100%;border: none;">
+            <div id="form-pane" style="overflow: auto;">
+                <form id="entityForm" style="padding: 20px;">
+                    <div class="row">
+                        <div class="col-md-2 col-sm-2 col-xs-2">
+                            <label for="entity" class="top-label">数据库表：</label>
+                            <input id="entity" class="">
+                        </div>
+                        <div class="col-md-2 col-sm-2 col-xs-2">
+                            <label for="src" class="top-label required">访问路径：</label>
+                            <input id="src" class="k-textbox validate[required]">
+                        </div>
+                        <div class="col-md-2 col-sm-2 col-xs-2">
+                            <label for="htmlName" class="top-label required">页面名称：</label>
+                            <input id="htmlName" class="k-textbox validate[required]" value="index">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2 col-sm-2 col-xs-2">
+                            <button name="saveEntity" class="k-button" type="button" data-role="button"
+                                    role="button"
+                                    onclick="saveEntityInfo()"><span
+                                    class="glyphicon glyphicon-plus"></span>创建
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div id="grid-pane" style="overflow: hidden;">
+                <div id="entityGrid" style="height: 100%"></div>
+            </div>
+        </div>
+    </div>
+    <div id="formLayout" style="height: 100%;width:100%;border: none;">
+        <div id="formSplitter" style="height: 100%;border: none;">
+            <div id="formForm-pane" style="overflow: auto;">
+                <form id="formForm" style="padding: 20px;">
+                    <div class="row">
+                        <div class="col-md-2 col-sm-2 col-xs-2">
+                            <label for="formEntity" class="top-label">数据库表：</label>
+                            <input id="formEntity" class="">
+                        </div>
+                        <div class="col-md-2 col-sm-2 col-xs-2">
+                            <label for="formSrc" class="top-label required">访问路径：</label>
+                            <input id="formSrc" class="k-textbox validate[required]">
+                        </div>
+                        <div class="col-md-2 col-sm-2 col-xs-2">
+                            <label for="formHtmlName" class="top-label required">页面名称：</label>
+                            <input id="formHtmlName" class="k-textbox validate[required]" value="edit">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2 col-sm-2 col-xs-2">
+                            <button name="saveFormEntity" class="k-button" type="button" data-role="button"
+                                    role="button"
+                                    onclick="saveFormEntityInfo()"><span
+                                    class="glyphicon glyphicon-plus"></span>创建
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div id="formEntityGrid" style="overflow: hidden;">
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+
+    // 创建html页面
+    function saveEntityInfo() {
+        if ($("#entityForm").validationEngine("validate")) {
+            var src = $("#src").val();
+            var htmlName = $("#htmlName").val();
+            var grid = $("#entityGrid").data("kendoGrid");
+            var checked = grid.getChecked();
+            if (checked != "" && checked.length >= 1) {
+                var developments = [];
+                for (var i = 0; i < checked.length; i++) {
+                    var dataItem = checked[i];
+                    var info = {};
+                    if (isEmpty(dataItem.columnComment)) {
+                        $.core.showErrogMsg("第【" + (i + 1) + "】行中列描述不能为空！");
+                        return;
+                    }
+                    if (isEmpty(dataItem.sort)) {
+                        $.core.showErrogMsg("第【" + (i + 1) + "】行中顺序不能为空！");
+                        return;
+                    }
+                    if (isEmpty(dataItem.width)) {
+                        dataItem["width"] = 140;
+                    }
+                    info["columnName"] = dataItem.columnName;
+                    info["columnComment"] = dataItem.columnComment;
+                    info["dataType"] = dataItem.dataType;
+                    info["columnKey"] = dataItem.columnKey;
+                    info["sort"] = dataItem.sort;
+                    info["width"] = dataItem.width;
+                    info["template"] = dataItem.template;
+                    info["toolTip"] = dataItem.toolTip;
+                    developments.push(info);
+                }
+                developments = JSON.stringify(developments);
+                $.ajax({
+                    url: "${ctx}/system/development/" + htmlName + "/createGridHtml?src=" + src,
+                    type: "post",
+                    data: developments,
+                    contentType: "application/json",
+                    dataType: "json",
+                    success: function (res) {
+                        if (res.status) {
+                            $.core.showMsg(res.msg);
+                        } else {
+                            $.core.showErrogMsg(res.msg);
+                        }
+                    }
+                })
+            } else {
+                $.core.showErrogMsg("请选择需要操作的数据！");
+            }
+        }
+    }
+    $(function () {
+        $("#gridSplitter").kendoSplitter({
+            animation: false,
+            orientation: "vertical",
+            panes: [
+                {collapsible: true, resizable: true, scrollable: true, size: "20%"},
+                {collapsible: false, resizable: true, scrollable: true}
+            ]
+        });
+        $("#formSplitter").kendoSplitter({
+            animation: false,
+            orientation: "vertical",
+            panes: [
+                {collapsible: true, resizable: true, scrollable: true, size: "20%"},
+                {collapsible: false, resizable: true, scrollable: true}
+            ]
+        });
+        $("#layout").kendoTabStrip({
+            select: function (e) {
+                calcTabHeight()
+            }
+        }).data("kendoTabStrip").select(0);
+        calcTabHeight();
+        initDBGrid();
+        setDropDownDataSource();
+        initEntityGrid();
+        getDBGridDataSource();
+        initFormEntityGrid();
+    });
+    function calcTabHeight() {
+        var tabHeight = $("#layout").parent().parent().height();
+        var ulHeight = $("#layout").find("ul").height();
+        var height = tabHeight - ulHeight;
+        $("#layout").find("div[role='tabpanel']").css({
+            height: height,
+            padding: "0px",
+            margin: "0px",
+            border: "0px"
+        });
+        $("#layout").find("ul").css({
+            padding: "0px",
+            border: "0px"
+        })
+    }
+
+
+    // 创建实体类
+    function creareEntity() {
+        var grid = $("#DBGrid").data("kendoGrid");
+        var rows = grid.getChecked();
+        if (rows && rows.length > 0) {
+            var tableNams = [];
+            var tableSrc = [];
+            for (var i = 0; i < rows.length; i++) {
+                tableNams.push(rows[i].tableName);
+                tableSrc.push($("#" + rows[i].tableName + "src").val());
+            }
+            $.core.showLoading();
+            tableNams = tableNams.join(",");
+            tableSrc = tableSrc.join(",");
+            $.ajax({
+                url: "/system/dataBase/sub",
+                type: "post",
+                data: {
+                    tables: tableNams,
+                    packs: tableSrc
+                },
+                dataType: "json",
+                success: function (res) {
+                    $.core.hideLoading();
+                    $.core.showMsg("生成成功！")
+                }, error: function (res) {
+                    $.core.hideLoading();
+                    $.core.showErrogMsg("网络错误!\n\r status:" + res.status + ";statusText:" + res.statusText)
+                }
+            });
+        } else {
+            $.core.showErrogMsg("请选择需要操作的数据!");
+        }
+    }
+    // 初始化数据库表格
+    function initDBGrid() {
+        $("#DBGrid").kendoGrid({
+            toolbar: [
+                {
+                    template: "<button id=\"opCreareEntity\" name=\"opCreareEntity\" class = \"k-button \" type=\"button\" data-role=\"button\" role=\"button\" aria-disabled=\"false\"  onclick=\"creareEntity();\"><span class=\"glyphicon glyphicon-plus\"><\/span>创建<\/button>",
+                    name: "opCreareEntity",
+                    text: "新增"
+                },
+            ],
+            pageable: {
+                pageSizes: [20, 50, 100, 500],
+                pageSize: 20,
+                refresh: true
+            },
+            sortable: {mode: "multiple", allowUnsort: true},
+            allowCopy: true,
+            filterable: {
+                mode: "row,menu"
+            },
+            resizable: true,
+            editable: false,
+            reorderable: true,
+            scrollable: {virtual: false},
+            columns: [
+                {
+                    field: "name",
+                    sortable: false,
+                    filterable: false,
+                    width: "35px",
+                    headerTemplate: '<input type="checkbox" class="k-checkbox" id="check-all"/><label for="check-all" class="k-checkbox-label" onclick="javascript:if($(\'#check-all\').is(\':checked\')){$(\'input[name=opCheck]\').prop(\'checked\',false);} else {$(\'input[name=opCheck]\').prop(\'checked\',true)}"></label>',
+                    template: function (e) {
+                        return '<input type="checkbox" name="opCheck" class="k-checkbox" data-type="ck" id="ck' + e.uid + '"/><label for="ck' + e.uid + '" class="k-checkbox-label" ></label>';
+                    }
+                },
+                {
+                    field: "tableName",
+                    width: "120",
+                    title: "表名"
+                },
+                {
+                    field: "tableComment",
+                    width: "120",
+                    title: "表描述"
+                }, {
+                    field: "src",
+                    width: "120",
+                    title: "生成路径",
+                    template: function (e) {
+                        return formatText({
+                            tagName: "src",
+                            tagId: e.tableName + "src",
+                            gridName: "DBGrid",
+                            width:"220px"
+                        });
+                    }
+                }
+            ],
+            filterable: {
+                mode: "row,menu",
+                messages: messages,
+                operators: {
+                    string: operators
+                },
+                extra: true
+            }
+        });
+    }
+
+    // 初始化实体类列表格
+    function initEntityGrid() {
+        $("#entityGrid").kendoGrid({
+                    pageable: {
+                        pageSizes: [20, 50, 100, 500],
+                        pageSize: 20,
+                        refresh: true
+                    },
+                    sortable: {mode: "multiple", allowUnsort: true},
+                    allowCopy: true,
+                    filterable: {
+                        mode: "row,menu"
+                    },
+                    resizable: true,
+                    editable: false,
+                    reorderable: true,
+                    scrollable: {virtual: false},
+                    columns: [
+                        {
+                            width: "30px",
+                            align: "left",
+                            checkbox: true    //多选
+                        },
+                        {
+                            field: "columnName",
+                            width: "120px",
+                            title: "列名"
+                        }, {
+                            field: "columnComment",
+                            width: "120px",
+                            title: "列描述",
+                            filterable: false,
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "columnComment",
+                                    gridName: "entityGrid",
+                                    value: e.columnComment
+                                });
+                            }
+                        }, {
+                            field: "dataType",
+                            width: "120px",
+                            title: "数据类型"
+                        }, {
+                            field: "columnKey",
+                            width: "120px",
+                            title: "主键",
+                            filterable: false
+                        },
+                        {
+                            field: "sort",
+                            width: "120px",
+                            title: "顺序",
+                            filterable: false,
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "sort",
+                                    type: "number",
+                                    gridName: "entityGrid",
+                                    value: e.sort
+                                });
+                            }
+                        },
+                        {
+                            field: "width",
+                            width: "120px",
+                            title: "宽度",
+                            filterable: false,
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "width",
+                                    type: "number",
+                                    gridName: "entityGrid"
+                                });
+                            }
+                        },
+                        {
+                            field: "template",
+                            width: "120px",
+                            title: "模板",
+                            filterable: false,
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "template",
+                                    tagId: e.template + "format",
+                                    gridName: "entityGrid"
+                                });
+                            }
+                        },
+                        {
+                            field: "toolTip",
+                            width: "120px",
+                            title: "是否显示提示",
+                            filterable: false,
+                            template: function (e) {
+                                e.toolTip = "N";
+                                return formatCheckBox({
+                                    tagName: "toolTip",
+                                    tagId: "toolTip" + e.uid,
+                                    gridName: "entityGrid"
+                                });
+                            }
+                        }
+                    ],
+                    filterable: {
+                        mode: "row,menu",
+                        messages: messages,
+                        operators: {
+                            string: operators
+                        }
+                        ,
+                        extra: true
+                    }
+                }
+        )
+        ;
+    }
+
+    // 初始化表单表格
+    function initFormEntityGrid() {
+        $("#formEntityGrid").kendoGrid({
+                    pageable: {
+                        pageSizes: [20, 50, 100, 500],
+                        pageSize: 20,
+                        refresh: true
+                    },
+                    sortable: {mode: "multiple", allowUnsort: true},
+                    allowCopy: true,
+                    filterable: {
+                        mode: "row,menu"
+                    },
+                    resizable: true,
+                    editable: false,
+                    reorderable: true,
+                    scrollable: {virtual: false},
+                    columns: [
+                        {
+                            field: "formCK",
+                            sortable: false,
+                            filterable: false,
+                            width: "35px",
+                            headerTemplate: '<input type="checkbox" class="k-checkbox" id="formCK-all"/><label for="formCK-all" class="k-checkbox-label" onclick="javascript:if($(\'#formCK-all\').is(\':checked\')){$(\'input[name=opFormCheck]\').prop(\'checked\',false);} else {$(\'input[name=opFormCheck]\').prop(\'checked\',true)}"></label>',
+                            template: function (e) {
+                                return '<input type="checkbox" name="opFormCheck" class="k-checkbox" data-type="ck" id="formCk' + e.uid + '"/><label for="formCk' + e.uid + '" class="k-checkbox-label" ></label>';
+                            }
+                        },
+                        {
+                            field: "columnName",
+                            width: "120px",
+                            title: "列名"
+                        }, {
+                            field: "columnComment",
+                            width: "120px",
+                            title: "列描述",
+                            filterable: false,
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "columnComment",
+                                    gridName: "formEntityGrid",
+                                    value: e.columnComment
+                                });
+                            }
+                        },
+                        {
+                            field: "sort",
+                            width: "120px",
+                            title: "顺序",
+                            filterable: false,
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "sort",
+                                    type: "number",
+                                    gridName: "formEntityGrid",
+                                    value: e.sort
+                                });
+                            }
+                        }, {
+                            field: "dataType",
+                            width: "120px",
+                            title: "数据类型",
+                            filterable: false,
+                            template: function (e) {
+                                return '<input style="width:120px;" name="dataType" id="dataType' + e.uid + '">';
+                            }
+                        }, {
+                            field: "dataSource",
+                            width: "120px",
+                            title: "数据源",
+                            filterable: false,
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "dataSource",
+                                    gridName: "formEntityGrid"
+                                });
+                            }
+                        }, {
+                            field: "changeEvent",
+                            width: "120px",
+                            title: "改变事件",
+                            filterable: false,
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "changeEvent",
+                                    gridName: "formEntityGrid"
+                                });
+                            }
+                        }, {
+                            field: "required",
+                            width: "120px",
+                            title: "是否必填",
+                            filterable: false,
+                            template: function (e) {
+                                e.required = "N";
+                                return formatCheckBox({
+                                    tagName: "required",
+                                    tagId: "required" + e.uid,
+                                    gridName: "formEntityGrid"
+                                });
+                            }
+                        }, {
+                            field: "readOnly",
+                            width: "120px",
+                            title: "只读",
+                            filterable: false,
+                            template: function (e) {
+                                e.readOnly = "N";
+                                return formatCheckBox({
+                                    tagName: "readOnly",
+                                    tagId: "readOnly" + e.uid,
+                                    gridName: "formEntityGrid"
+                                });
+                            }
+                        }
+                    ],
+                    filterable: {
+                        mode: "row,menu",
+                        messages: messages,
+                        operators: {
+                            string: operators
+                        }
+                        ,
+                        extra: true
+                    }, dataBound: function (e) {
+                        var dataSource = ["text", "dropdownlist", "combobox", "datepicker", "numerictextbox", "checkbox"];
+                        $("input[name='dataType']").each(function () {
+                            var that = this;
+                            var b = $("#formEntityGrid").data("kendoGrid").dataItem($(that).closest("tr"));
+                            b[$(this).attr("name")] = 'text';
+                            $(this).kendoDropDownList({
+                                valuePrimitive: true,
+                                autoBind: true,
+                                filter: "contains",
+                                dataSource: dataSource,
+                                change: function (e) {
+                                    var data = $("#formEntityGrid").data("kendoGrid").dataItem($(that).closest("tr"));
+                                    data[$(that).attr("name")] = this.value();
+                                }
+                            });
+                        });
+                    }
+                }
+        )
+        ;
+    }
+
+    // 设置下拉框的数据源
+    function setDropDownDataSource() {
+        var dataSource = getDropDownDataSource("/system/development/findDataBaseCombo");
+        $("#entity").kendoDropDownList({
+            dataSource: dataSource,
+            dataValueField: "id",
+            dataTextField: "text",
+            valuePrimitive: true,
+            autoBind: true,
+            filter: "contains",
+            change: function (e) {
+                var value = this.value();
+                getEntityGridDataSource(value, "entityGrid")
+            }
+        });
+        $("#formEntity").kendoDropDownList({
+            dataSource: dataSource,
+            dataValueField: "id",
+            dataTextField: "text",
+            valuePrimitive: true,
+            autoBind: true,
+            filter: "contains",
+            change: function (e) {
+                var value = this.value();
+                getEntityGridDataSource(value, "formEntityGrid")
+            }
+        });
+    }
+
+    // 获取实体类数据源
+    function getEntityGridDataSource(table, gridName) {
+        var data = getGridDataSource("/system/development/findColumnInfoByTable?table=" + table)
+        var grid = $("#" + gridName).data("kendoGrid");
+        grid.setDataSource(data);
+    }
+
+    // 获取数据库数据源
+    function getDBGridDataSource() {
+        var data = getGridDataSource("/system/dataBase/loadData")
+        var grid = $("#DBGrid").data("kendoGrid");
+        grid.setDataSource(data);
+    }
+
+    // 保存表单的制作
+    function saveFormEntityInfo() {
+        if ($("#formForm").validationEngine("validate")) {
+            var src = $("#formSrc").val();
+            var htmlName = $("#formHtmlName").val();
+            var grid = $("#formEntityGrid").data("kendoGrid");
+            var checked = grid.getChecked();
+            if (checked != "" && checked.length >= 1) {
+                var developments = [];
+                for (var i = 0; i < checked.length; i++) {
+                    var dataItem = checked[i];
+                    var info = {};
+                    if (isEmpty(dataItem.columnComment)) {
+                        $.core.showErrogMsg("第【" + (i + 1) + "】行中列描述不能为空！");
+                        return;
+                    }
+                    if (isEmpty(dataItem.sort)) {
+                        $.core.showErrogMsg("第【" + (i + 1) + "】行中顺序不能为空！");
+                        return;
+                    }
+                    info["columnName"] = dataItem.columnName;
+                    info["columnComment"] = dataItem.columnComment;
+                    info["dataType"] = dataItem.dataType;
+                    info["sort"] = dataItem.sort;
+                    info["dataSource"] = dataItem.dataSource;
+                    info["changeEvent"] = dataItem.changeEvent;
+                    info["required"] = dataItem.required;
+                    info["readOnly"] = dataItem.readOnly;
+                    developments.push(info);
+                }
+                developments = JSON.stringify(developments);
+                $.ajax({
+                    url: "${ctx}/system/development/" + htmlName + "/createFormHtml?src=" + src,
+                    type: "post",
+                    data: developments,
+                    contentType: "application/json",
+                    dataType: "json",
+                    success: function (res) {
+                        if (res.status) {
+                            $.core.showMsg(res.msg);
+                        } else {
+                            $.core.showErrogMsg(res.msg);
+                        }
+                    }
+                })
+            } else {
+                $.core.showErrogMsg("请选择需要操作的数据！");
+            }
+        }
+    }
+
+</script>
+</html>

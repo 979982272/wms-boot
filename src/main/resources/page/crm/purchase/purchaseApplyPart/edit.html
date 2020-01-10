@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<!-- SPA container define -->
+<div id="application"></div>
+<!-- loyout template define -->
+<script id="layout-template" type="text/x-kendo-template">
+    <div id="content"></div>
+</script>
+<!-- edit view template define -->
+<script id="editForm-template" type="text/x-kendo-template">
+    <div id="editForm-pane" style="overflow: auto;" data-bind="style: {height: contentHeight}">
+        <form id="editForm" style="padding: 15px;">
+            <div class="row">
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="purchaseApplyId"
+                           class="top-label required">采购订单号：</label>
+                    <input id="purchaseApplyId" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.purchaseApplyId"
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="goodsId"
+                           class="top-label required">产品编码：</label>
+                    <input id="goodsId" class="validate[required]"
+                           data-bind="value:editModelData.goodsId"
+                           data-role="searchbox" data-search="editFormModel.searchGoods"
+                           data-clear="editFormModel.clearGoods"
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="goodsName"
+                           class="top-label required">产品名称：</label>
+                    <input id="goodsName" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.goodsName"
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="goodsUnitName"
+                           class="top-label required">单位名称：</label>
+                    <input id="goodsUnitName" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.goodsUnitName"
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="goodsModel"
+                           class="top-label ">规格型号：</label>
+                    <input id="goodsModel" class="k-textbox "
+                           data-bind="value:editModelData.goodsModel"
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="applyAmount"
+                           class="top-label required">申请数量：</label>
+                    <input id="applyAmount" class="validate[required]"
+                           data-bind="value:editModelData.applyAmount"
+                           data-role="numerictextbox"
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="unitPrice"
+                           class="top-label required">单位价格：</label>
+                    <input id="unitPrice" class="validate[required]"
+                           data-bind="value:editModelData.unitPrice"
+                           data-role="numerictextbox"
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="rate"
+                           class="top-label required">税率(%)：</label>
+                    <input id="rate" class="validate[required]"
+                           data-bind="value:editModelData.rate"
+                           data-role="numerictextbox"
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="remark"
+                           class="top-label ">备注：</label>
+                    <input id="remark" class="k-textbox "
+                           data-bind="value:editModelData.remark"
+                            >
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <button name="saveEditInfo" class="k-button" type="button" data-role="button"
+                            role="button"
+                            data-bind="events: {click: saveEditInfo}"><span
+                            class="fa fa-save"></span>保存
+                    </button>
+                    <button name="back" class="k-button" type="button" data-role="button"
+                            role="button"
+                            data-bind="events: {click: back}"><span
+                            class="fa fa-mail-reply"></span>关闭
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+</body>
+<script>
+
+    // 数据模型
+    var editFormModel = kendo.observable({
+        editModelData: {},
+        op: "create",
+        contentHeight: document.documentElement.clientHeight - 37 + "px",
+        reset: function () {
+            var that = this;
+            that.set("editModelData", {});
+        },
+        saveEditInfo: function () {
+            var that = this;
+            if ($("#editForm").validationEngine("validate")) {
+                var req = {};
+                var info;
+                info = jQuery.extend(true, {}, that.get("editModelData"));
+                $.extend(req, info);
+                $.ajax({
+                    url: "/crm/purchase/purchaseApplyPart/" + that.op,
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify(info),
+                    success: function (res) {
+                        if (res.status) {
+                            that.set("op", "update");
+                            $.core.showMsg(res.msg);
+                            $.core.closeWin()
+                        } else {
+                            $.core.showErrogMsg(res.msg);
+                        }
+                    }
+                })
+            }
+        },
+        back: function () {
+            $.core.closeWin()
+        },
+        searchGoods: function () {
+            var vendorId = "${vendorId}"
+            var that = editFormModel;
+            $.core.open("${ctx}/base/goods/" + vendorId + "/selectGoods", "添加产品", {
+                width: "960px",
+                height: "580px",
+                close: function () {
+                    var selectGoods = $.core.data("selectGoods");
+                    if (isNotEmpty(selectGoods)) {
+                        that.set("editModelData.goodsId", selectGoods.goodsId);
+                        that.set("editModelData.goodsName", selectGoods.goodsName);
+                        that.set("editModelData.goodsUnitId", selectGoods.goodsUnitId);
+                        that.set("editModelData.goodsUnitName", selectGoods.goodsUnitName);
+                        that.set("editModelData.goodsModel", selectGoods.goodsModel);
+                        that.set("editModelData.unitPrice", selectGoods.normalPrice);
+                        that.set("editModelData.rate", 0);
+                        that.set("editModelData.applyAmount", 0);
+                    }
+                }
+            })
+        },
+        clearGoods: function () {
+            var that = editFormModel;
+            that.set("editModelData.goodsId", "");
+            that.set("editModelData.goodsName", "");
+            that.set("editModelData.goodsUnitId", "");
+            that.set("editModelData.goodsUnitName", "");
+            that.set("editModelData.goodsModel", "");
+            that.set("editModelData.unitPrice", 0);
+            that.set("editModelData.rate", 0);
+            that.set("editModelData.applyAmount", 0);
+        }
+    });
+    // 初始化
+    function initEditForm() {
+        var purchaseApplyId = "${purchaseApplyId}"
+        var id = '${id}';
+        var that = editFormModel;
+        that.set("editModelData.purchaseApplyId", purchaseApplyId);
+        readOnlyById("purchaseApplyId")
+        readOnlyById("goodsName")
+        readOnlyById("goodsUnitName")
+        readOnlyById("goodsModel")
+        if (isNotEmpty(id)) {
+            that.op = "update";
+            getDataInfoById("/crm/purchase/purchaseApplyPart/" + id + "/getDataInfoById", function (res) {
+                if (res.status) {
+                    that.set("editModelData", res.other.modelData);
+                } else {
+                    $.core.showErrogMsg(res.msg);
+                }
+            });
+        } else {
+            editFormModel.op = "create";
+        }
+    }
+    //基本信息页面
+    var editFormView = new kendo.View("editForm-template", {
+        model: editFormModel, init: initEditForm
+    });
+    // Routing
+    var router = new kendo.Router();
+    // Layout
+    var layout = new kendo.Layout("layout-template");
+    // 渲染
+    layout.render("#application");
+    // 基本信息
+    router.route("/", function () {
+        layout.showIn("#content", editFormView);
+    });
+    $(function () {
+        //开户路由
+        router.start();
+    });
+</script>

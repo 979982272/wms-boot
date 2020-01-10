@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tudou.system.development.mapper.DevelopmentMapper">
+    <resultMap id="result" type="com.tudou.system.development.entity.Development">
+        <result column="column_name" jdbcType="VARCHAR" property="columnName"/>
+        <result column="column_comment" jdbcType="VARCHAR" property="columnComment"/>
+        <result column="data_type" jdbcType="VARCHAR" property="dataType"/>
+        <result column="COLUMN_KEY" jdbcType="VARCHAR" property="columnKey"/>
+    </resultMap>
+    <select id="findAllColumn" resultMap="result" parameterType="String">
+        SELECT DISTINCT column_name,column_comment,data_type,COLUMN_KEY
+        FROM information_schema. COLUMNS WHERE table_name = #{table}
+    </select>
+</mapper>

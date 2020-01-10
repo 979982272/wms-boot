@@ -1,0 +1,53 @@
+spring:
+  profiles:
+    #启用application-dev配置文件
+    active: dev
+  freemarker:
+    ##设置freemarker的路径
+    template-loader-path: classpath:/page
+    ##设置文件的后缀
+    suffix: .html
+    content-type: text/html;charset=UTF-8
+    request-context-attribute: request
+  ##设置静态文件路径
+  mvc:
+    static-path-pattern: /static/**
+##Mybatis配置
+mybatis:
+  #扫描的xml位置
+  mapper-locations: com.tudou.**.mapper/*.xml
+  #懒加载配置
+  configuration:
+    lazy-loading-enabled: true
+    aggressive-lazy-loading: false
+#配置通用mybatis
+mapper:
+  mappers: tk.mybatis.mapper.common.Mapper
+  identity: MYQL
+#分页配置
+#pagehelper:
+#  reasonable: true
+#  supportMethodsArguments: true
+#  offsetAsPageNum: true
+#  rowBoundsWithCount: true
+#  pageSizeZero: true
+#  reasonable: true
+#  params: pageNum=start;pageSize=limit;
+#  supportMethodsArguments: true
+#  returnPageInfo: check
+
+##############################################配置文件###########################################
+#模板配置文件路径
+ftl:
+    generatorConfig: ftl/generatorConfig.ftl
+    controller: ftl/controller.ftl
+    service: ftl/service.ftl
+    serviceImpl: ftl/serviceImpl.ftl
+    gridHtml: ftl/gridHtml.ftl
+    editHtml: ftl/editHtml.ftl
+#模板文件生成路径
+path:
+    generatorConfig: E:\\workSpace\\work\\base\\src\\main\\resources\\generatorConfig.xml
+    java: E:\\workSpace\\work\\base\\src\\main\\java
+    html: E:\\workSpace\\work\\base\\src\\main\\webapp\\WEB-INF\\page
+    webInfo: E:\\workSpace\\work\\base\\src\\main\\webapp\\WEB-INF

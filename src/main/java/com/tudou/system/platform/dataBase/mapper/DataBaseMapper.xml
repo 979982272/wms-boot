@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tudou.system.platform.dataBase.mapper.DataBaseMapper">
+    <resultMap id="result" type="com.tudou.system.platform.dataBase.entity.DataBase">
+        <result column="TABLE_NAME" jdbcType="VARCHAR" property="tableName"/>
+        <result column="TABLE_COMMENT" jdbcType="VARCHAR" property="tableComment"/>
+    </resultMap>
+    <select id="showTables" resultMap="result">
+       SELECT TABLE_NAME,TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'base'
+    </select>
+    <select id="showTablesByDBName" resultMap="result" parameterType="String">
+       SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = #{table}
+    </select>
+</mapper>

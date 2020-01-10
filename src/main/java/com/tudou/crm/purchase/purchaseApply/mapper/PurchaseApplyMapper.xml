@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tudou.crm.purchase.purchaseApply.mapper.PurchaseApplyMapper">
+    <resultMap id="BaseResultMap" type="com.tudou.crm.purchase.purchaseApply.entity.PurchaseApply">
+        <!--
+          WARNING - @mbggenerated
+        -->
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="vendor_id" jdbcType="VARCHAR" property="vendorId"/>
+        <result column="vendor_name" jdbcType="VARCHAR" property="vendorName"/>
+        <result column="warehouse_id" jdbcType="VARCHAR" property="warehouseId"/>
+        <result column="warehouse_name" jdbcType="VARCHAR" property="warehouseName"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="apply_date" jdbcType="TIMESTAMP" property="applyDate"/>
+        <result column="arrival_date" jdbcType="TIMESTAMP" property="arrivalDate"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="server_flag" jdbcType="INTEGER" property="serverFlag"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="create_emp" jdbcType="VARCHAR" property="createEmp"/>
+        <result column="create_emp_id" jdbcType="VARCHAR" property="createEmpId"/>
+        <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime"/>
+        <result column="modify_emp" jdbcType="VARCHAR" property="modifyEmp"/>
+        <result column="modify_emp_id" jdbcType="VARCHAR" property="modifyEmpId"/>
+        <result column="audit_time" jdbcType="TIMESTAMP" property="auditTime"/>
+        <result column="audit_emp" jdbcType="VARCHAR" property="auditEmp"/>
+        <result column="audit_emp_id" jdbcType="VARCHAR" property="auditEmpId"/>
+        <collection property="purchaseApplyParts" javaType="ArrayList" column="id"
+                    ofType="com.tudou.crm.purchase.purchaseApply.entity.PurchaseApplyPart"
+                    select="com.tudou.crm.purchase.purchaseApply.mapper.PurchaseApplyPartMapper.findPurchaseApplyPartByApplyId"
+                    fetchType="eager">
+            <id column="id" property="id" jdbcType="VARCHAR"/>
+            <result column="purchase_apply_id" property="purchaseApplyId" jdbcType="VARCHAR"/>
+            <result column="goods_id" property="goodsId" jdbcType="VARCHAR"/>
+            <result column="goods_name" property="goodsName" jdbcType="VARCHAR"/>
+            <result column="goods_unit_id" property="goodsUnitId" jdbcType="VARCHAR"/>
+            <result column="goods_unit_name" property="goodsUnitName" jdbcType="VARCHAR"/>
+            <result column="goods_model" property="goodsModel" jdbcType="VARCHAR"/>
+            <result column="apply_amount" property="applyAmount" jdbcType="DECIMAL"/>
+            <result column="push_amount" property="pushAmount" jdbcType="DECIMAL"/>
+            <result column="unit_price" property="unitPrice" jdbcType="DECIMAL"/>
+            <result column="unit_price_rate" property="unitPriceRate" jdbcType="DECIMAL"/>
+            <result column="total_price" property="totalPrice" jdbcType="DECIMAL"/>
+            <result column="total_price_rate" property="totalPriceRate" jdbcType="DECIMAL"/>
+            <result column="rate" property="rate" jdbcType="DECIMAL"/>
+            <result column="remark" property="remark" jdbcType="VARCHAR"/>
+            <result column="server_flag" property="serverFlag" jdbcType="INTEGER"/>
+            <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+            <result column="create_emp" property="createEmp" jdbcType="VARCHAR"/>
+            <result column="create_emp_id" property="createEmpId" jdbcType="VARCHAR"/>
+            <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+            <result column="modify_emp" property="modifyEmp" jdbcType="VARCHAR"/>
+            <result column="modify_emp_id" property="modifyEmpId" jdbcType="VARCHAR"/>
+        </collection>
+    </resultMap>
+
+    <select id="findPurchaseApplyById" resultMap="BaseResultMap">
+       SELECT  * from crm_purchase_apply WHERE id=#{id}
+    </select>
+
+    <update id="updatePurchaseApplyStatusById">
+        UPDATE crm_purchase_apply SET status = #{status} WHERE  id = #{id}
+    </update>
+</mapper>

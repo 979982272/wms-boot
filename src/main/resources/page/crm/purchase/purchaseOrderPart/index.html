@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<div id="indexGrid" style="height: 100%"></div>
+</body>
+<script>
+    var gridName = "indexGrid";
+    $(function () {
+        setGrid();
+        setGridDataSource();
+    });
+    // 初始化表格
+    function setGrid() {
+        $("#" + gridName).kendoGrid({
+                    toolbar: [
+                        {
+                            template: "<button id=\"opExport\" name=\"opExport\" class = \"k-button \" type=\"button\" data-role=\"button\" role=\"button\" aria-disabled=\"false\"  onclick=\"opExport();\"><span class=\"fa fa-cloud-download fa-fw\"><\/span>导出采购台账<\/button>",
+                            name: "opExport",
+                            text: "导出采购台账"
+                        }
+                    ],
+                    pageable: {
+                        pageSizes: [20, 50, 100, 500],
+                        pageSize: 20,
+                        refresh: true
+                    },
+                    sortable: {mode: "multiple", allowUnsort: true},
+                    allowCopy: true,
+                    filterable: {
+                        mode: "row,menu"
+                    },
+                    resizable: true,
+                    editable: false,
+                    reorderable: true,
+                    scrollable: {virtual: false},
+                    columns: [
+                        {
+                            locked:true,
+                            field: "indexCkAll",
+                            sortable: false,
+                            filterable: false,
+                            width: "35px",
+                            headerTemplate: '<input type="checkbox" class="k-checkbox" id="indexCkAll"/><label for="indexCkAll" class="k-checkbox-label" onclick="javascript:if($(\'#indexCkAll\').is(\':checked\')){$(\'input[name=opindexCheck]\').prop(\'checked\',false);} else {$(\'input[name=opindexCheck]\').prop(\'checked\',true)}"></label>',
+                            template: function (e) {
+                                return '<input type="checkbox" name="opindexCheck" class="k-checkbox" data-type="ck" id="ck' + e.uid + '"/><label for="ck' + e.uid + '" class="k-checkbox-label" ></label>';
+                            }
+                        },
+                        {
+                            locked:true,
+                            field: "purchaseOrderId",
+                            width: "180px",
+                            title: "采购订单号"
+                        }
+                        ,
+                        {
+                            field: "goodsId",
+                            width: "140px",
+                            title: "产品编码"
+                        }
+                        ,
+                        {
+                            field: "goodsName",
+                            width: "140px",
+                            title: "产品名称"
+                        }
+                        ,
+                        {
+                            field: "goodsUnitName",
+                            width: "140px",
+                            title: "单位名称"
+                        }
+                        ,
+                        {
+                            field: "goodsModel",
+                            width: "140px",
+                            title: "规格型号",
+                            footerTemplate: function (e) {
+                                return "合计:";
+                            }
+                        }
+                        ,{
+                            field: "purchaseAmount",
+                            width: "140px",
+                            title: "采购数量",
+                            attributes: {
+                                style: "text-align:right"
+                            },
+                            footerTemplate: function (e) {
+                                var data = e["purchaseAmount"];
+                                if (isNotEmpty(data)) {
+                                    return data["sum"];
+                                }
+                            }
+                        },
+                        {
+                            field: "receivingAmount",
+                            width: "140px",
+                            title: "入库数量",
+                            attributes: {
+                                style: "text-align:right"
+                            },
+                            footerTemplate: function (e) {
+                                var data = e["receivingAmount"];
+                                if (isNotEmpty(data)) {
+                                    return data["sum"];
+                                }
+                            }
+                        }
+                        ,
+                        {
+                            field: "unitPrice",
+                            width: "140px",
+                            attributes: {
+                                style: "text-align:right"
+                            },
+                            title: "单位价格"
+                        }
+                        ,
+                        {
+                            field: "unitPriceRate",
+                            width: "140px",
+                            attributes: {
+                                style: "text-align:right"
+                            },
+                            title: "含税单价"
+                        }
+                        ,
+                        {
+                            field: "totalPrice",
+                            width: "140px",
+                            title: "总价",
+                            attributes: {
+                                style: "text-align:right"
+                            },
+                            footerTemplate: function (e) {
+                                var data = e["totalPrice"];
+                                if (isNotEmpty(data)) {
+                                    return data["sum"];
+                                }
+                            }
+                        }
+                        ,
+                        {
+                            field: "totalPriceRate",
+                            width: "140px",
+                            title: "含税总价",
+                            attributes: {
+                                style: "text-align:right"
+                            },
+                            footerTemplate: function (e) {
+                                var data = e["totalPriceRate"];
+                                if (isNotEmpty(data)) {
+                                    return data["sum"];
+                                }
+                            }
+                        }
+                        ,
+                        {
+                            field: "remark",
+                            width: "140px",
+                            title: "备注"
+                        }
+
+                    ],
+                    filterable: {
+                        mode: "row,menu",
+                        messages: messages,
+                        operators: {
+                            string: operators
+                        }
+                        ,
+                        extra: true
+                    }, dataBound: function (e) {
+                        gridOnDataBound();
+                    }
+                }
+        )
+        ;
+        $("#" + gridName).kendoTooltip({
+            filter: "td[tipflag='hasTooltip']", position: "top", content: function (e) {
+                var field = $(e.target).attr("datafield");
+                var dataItem = $("#" + gridName).data("kendoGrid").dataItem(e.target.closest("tr"));
+                return dataItem[field];
+            }
+        }).data("kendoTooltip");
+    }
+    // 设置数据源
+    function setGridDataSource() {
+        var data = getGridDataSource("/crm/purchase/purchaseOrderPart/loadData")
+        var grid = $("#" + gridName).data("kendoGrid");
+        grid.setDataSource(data);
+    }
+
+    function getGridDataSource(url) {
+        var data = new kendo.data.DataSource({
+            schema: {
+                total: "total",
+                data: "data",
+                groups: "data",
+                aggregates: "aggregates",
+                type: "json",
+                errors: "errors"
+            },
+            aggregate: [
+                {field: "receivingAmount", aggregate: "sum"},
+                {field: "purchaseAmount", aggregate: "sum"},
+                {field: "totalPrice", aggregate: "sum"},
+                {field: "totalPriceRate", aggregate: "sum"}
+            ],
+            serverPaging: true,
+            serverFiltering: true,
+            serverSorting: true,
+            pageSize: 20,
+            page: 1,
+            transport: {
+                read: {
+                    dataType: "json",
+                    type: "POST",
+                    contentType: "application/json",
+                    url: url
+                }, parameterMap: function (e) {
+                    return JSON.stringify(e);
+                }
+            }
+        });
+        return data;
+    }
+
+    // 编辑
+    function editIndexInfo(id) {
+        window.location.href = '${ctx}/crm/purchase/purchaseOrderPart/edit?id=' + id;
+    }
+
+    // 删除
+    function deleteIndexInfo(id) {
+        actionInfo({
+            url: '${ctx}/crm/purchase/purchaseOrderPart/' + id + "/deleteById",
+            gridName: gridName
+        });
+    }
+
+    // 创建
+    function creareIndex() {
+        window.location.href = '${ctx}/crm/purchase/purchaseOrderPart/edit';
+    }
+
+    // 批量删除
+    function deleteBatchIndex() {
+        batchActionByIds({
+            url: '${ctx}/crm/purchase/purchaseOrderPart/deleteBatchByIds',
+            gridName: gridName
+        });
+    }
+
+</script>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<!-- SPA container define -->
+<div id="application"></div>
+<!-- loyout template define -->
+<script id="layout-template" type="text/x-kendo-template">
+    <div id="content"></div>
+</script>
+<!-- edit view template define -->
+<script id="editForm-template" type="text/x-kendo-template">
+    <div id="editForm-pane" style="overflow: auto;" data-bind="style: {height: contentHeight}">
+        <form id="editForm" style="padding: 15px;">
+            <div class="row">
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="id"
+                           class="top-label required">编号：</label>
+                    <input id="id" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.id"
+                           readonly
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="username"
+                           class="top-label required">姓名：</label>
+                    <input id="username" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.username"
+                            >
+                </div>
+                <!--<div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="password"
+                           class="top-label required">密码：</label>
+                    <input id="password" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.password" type="password"
+                            >
+                </div>-->
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="sex"
+                           class="top-label ">性别：</label>
+                    <input id="sex" data-role="dropdownlist" data-value-field="id"
+                           data-text-field="text"
+                           data-bind="value:editModelData.sex,source:sexDataSource"
+                           data-value-primitive="true"
+                           data-auto-bind="true" data-filter="contains"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="department"
+                           class="top-label ">所属机构：</label>
+                    <input id="department" class="k-textbox "
+                           data-bind="value:editModelData.department"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="superior"
+                           class="top-label ">上司：</label>
+                    <input id="superior" class="k-textbox "
+                           data-bind="value:editModelData.superior"
+
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="post"
+                           class="top-label ">职务：</label>
+                    <input id="post" class="k-textbox "
+                           data-bind="value:editModelData.post"
+
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="title"
+                           class="top-label ">职称：</label>
+                    <input id="title" class="k-textbox "
+                           data-bind="value:editModelData.title"
+
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="phone"
+                           class="top-label ">电话：</label>
+                    <input id="phone" class="k-textbox "
+                           data-bind="value:editModelData.phone"
+
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="email"
+                           class="top-label ">邮箱：</label>
+                    <input id="email" class="k-textbox "
+                           data-bind="value:editModelData.email"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="birth"
+                           class="top-label ">出生日期：</label>
+                    <input id="birth" class=""
+                           data-bind="value:editModelData.birth"
+                           data-role="datepicker"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="enrollment"
+                           class="top-label ">入职日期：</label>
+                    <input id="enrollment" class=""
+                           data-bind="value:editModelData.enrollment"
+                           data-role="datepicker"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="resign"
+                           class="top-label ">离职日期：</label>
+                    <input id="resign" class=""
+                           data-bind="value:editModelData.resign"
+                           data-role="datepicker"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="contract"
+                           class="top-label ">合同到期日期：</label>
+                    <input id="contract" class=""
+                           data-bind="value:editModelData.contract"
+                           data-role="datepicker"
+                            >
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2 col-sm-2 col-xs-2">
+                    <button name="saveEditInfo" class="k-button" type="button" data-role="button"
+                            role="button"
+                            data-bind="events: {click: saveEditInfo}"><span
+                            class="fa fa-save"></span>保存
+                    </button>
+                    <button name="back" class="k-button" type="button" data-role="button"
+                            role="button"
+                            data-bind="events: {click: back}"><span
+                            class="fa fa-mail-reply"></span>返回
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+</body>
+<script>
+    // 数据模型
+    var editFormModel = kendo.observable({
+        editModelData: {},
+        op: "create",
+        contentHeight: document.documentElement.clientHeight - 37 + "px",
+        reset: function () {
+            var that = this;
+            that.set("editModelData", {});
+        },
+        saveEditInfo: function () {
+            var that = this;
+            if ($("#editForm").validationEngine("validate")) {
+                var req = {};
+                var info;
+                info = jQuery.extend(true, {}, that.get("editModelData"));
+                $.extend(req, info);
+                $.ajax({
+                    url: "/base/emp/" + that.op,
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify(info),
+                    success: function (res) {
+                        if (res.status) {
+                            that.set("op", "update");
+                            $.core.showMsg(res.msg)
+                        } else {
+                            $.core.showErrogMsg(res.msg);
+                        }
+                    }
+                })
+            }
+        },
+        back: function () {
+            history.back(-1);
+        }
+        , sexDataSource: [{'id': '', 'text': ''}, {'id': '1', 'text': '男'}, {'id': '0', 'text': '女'}]
+    });
+
+
+    // 初始化
+    function initEditForm() {
+        var id = '${id}';
+        if (isNotEmpty(id)) {
+            editFormModel.op = "update";
+            getDataInfoById("/base/emp/" + id + "/getDataInfoById", function (res) {
+                if (res.status) {
+                    editFormModel.set("editModelData", res.other.modelData);
+                } else {
+                    $.core.showErrogMsg(res.msg);
+                }
+            });
+        } else {
+            editFormModel.op = "create";
+            getDataInfoById("/base/emp/getDefaultInfo", function (res) {
+                if (res.status) {
+                    editFormModel.set("editModelData", res.other.modelData);
+                } else {
+                    $.core.showErrogMsg(res.msg);
+                }
+            });
+        }
+    }
+    //基本信息页面
+    var editFormView = new kendo.View("editForm-template", {
+        model: editFormModel, init: initEditForm
+    });
+    // Routing
+    var router = new kendo.Router();
+    // Layout
+    var layout = new kendo.Layout("layout-template");
+    // 渲染
+    layout.render("#application");
+    // 基本信息
+    router.route("/", function () {
+        layout.showIn("#content", editFormView);
+    });
+    $(function () {
+        //开户路由
+        router.start();
+    });
+</script>

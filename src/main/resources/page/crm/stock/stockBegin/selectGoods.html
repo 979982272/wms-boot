@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<div id="gridSplitter" style="height: 100%;border: none;">
+    <div id="form-pane" style="overflow: auto;">
+        <form id="stockBeginForm" style="padding-left: 20px;">
+            <div class="col-md-2 col-sm-2 col-xs-2">
+                <label for="warehouseId" class="top-label required">仓库：</label>
+                <input id="warehouseId" class="validate[required]">
+            </div>
+            <div class="col-md-2 col-sm-2 col-xs-2" style="margin-top: 35px;margin-left: 10px">
+                <button name="saveEditInfo" class="k-button" type="button" data-role="button"
+                        role="button" onclick="saveStockBegin()">
+                    <span class="fa fa-save"></span>保存
+                </button>
+            </div>
+        </form>
+    </div>
+    <div id="indexGrid" style="height: 100%"></div>
+</div>
+</body>
+<script>
+    var gridName = "indexGrid";
+    $(function () {
+        $("#gridSplitter").kendoSplitter({
+            animation: false,
+            orientation: "vertical",
+            panes: [
+                {collapsible: true, resizable: true, scrollable: true, size: "18%"},
+                {collapsible: false, resizable: true, scrollable: true}
+            ]
+        });
+        setDropDownDataSource();
+        setGrid();
+        setGridDataSource();
+    });
+
+    // 设置下拉框的数据源
+    function setDropDownDataSource() {
+        var dataSource = getDropDownDataSource("/base/warehouse/findWarehouseCombo");
+        $("#warehouseId").kendoDropDownList({
+            dataSource: dataSource,
+            dataValueField: "id",
+            dataTextField: "text",
+            valuePrimitive: true,
+            autoBind: true,
+            filter: "contains"
+        });
+    }
+    // 初始化表格
+    function setGrid() {
+        $("#" + gridName).kendoGrid({
+                    pageable: {
+                        pageSizes: [20, 50, 100, 500],
+                        pageSize: 20,
+                        refresh: true
+                    },
+                    sortable: {mode: "multiple", allowUnsort: true},
+                    allowCopy: true,
+                    filterable: {
+                        mode: "row,menu"
+                    },
+                    resizable: true,
+                    editable: false,
+                    reorderable: true,
+                    scrollable: {virtual: false},
+                    columns: [
+                        {
+                            field: "indexCkAll",
+                            sortable: false,
+                            filterable: false,
+                            width: "35px",
+                            headerTemplate: '<input type="checkbox" class="k-checkbox" id="indexCkAll"/><label for="indexCkAll" class="k-checkbox-label" onclick="javascript:if($(\'#indexCkAll\').is(\':checked\')){$(\'input[name=opindexCheck]\').prop(\'checked\',false);} else {$(\'input[name=opindexCheck]\').prop(\'checked\',true)}"></label>',
+                            template: function (e) {
+                                return '<input type="checkbox" name="opindexCheck" class="k-checkbox" data-type="ck" id="ck' + e.uid + '"/><label for="ck' + e.uid + '" class="k-checkbox-label" ></label>';
+                            }
+                        },
+                        {
+                            field: "id",
+                            width: "120px",
+                            title: "产品编码"
+                        }
+                        ,
+                        {
+                            field: "goodsName",
+                            width: "160px",
+                            title: "产品名称",
+                            attributes: {
+                                style: "white-space: nowrap",
+                                tipflag: "hasTooltip",
+                                datafield: "goodsName"
+                            }
+                        }
+                        ,
+                        {
+                            field: "goodsTypeName",
+                            width: "120px",
+                            title: "产品类型"
+                        }
+                        ,
+                        {
+                            field: "goodsUnitName",
+                            width: "100px",
+                            title: "产品单位"
+                        }
+                        ,
+                        {
+                            field: "goodsModel",
+                            width: "100px",
+                            title: "规格型号"
+                        }
+                        ,
+                        {
+                            field: "normalPrice",
+                            width: "140px",
+                            title: "单价",
+                            template: function (e) {
+                                return formatText({
+                                    tagName: "normalPrice",
+                                    type: "number",
+                                    gridName: gridName,
+                                    value: e.normalPrice
+                                });
+                            }
+                        },
+                        {
+                            field: "stockAmount",
+                            width: "140px",
+                            title: "期初库存",
+                            template: function (e) {
+                                e.stockAmount = 0;
+                                return formatText({
+                                    tagName: "stockAmount",
+                                    type: "number",
+                                    gridName: gridName,
+                                    value: e.stockAmount
+                                });
+                            }
+                        }
+                    ],
+                    filterable: {
+                        mode: "row,menu",
+                        messages: messages,
+                        operators: {
+                            string: operators
+                        }
+                        ,
+                        extra: true
+                    }, dataBound: function (e) {
+                        gridOnDataBound();
+                    }
+                }
+        )
+        ;
+        $("#" + gridName).kendoTooltip({
+            filter: "td[tipflag='hasTooltip']", position: "top", content: function (e) {
+                var field = $(e.target).attr("datafield");
+                var dataItem = $("#" + gridName).data("kendoGrid").dataItem(e.target.closest("tr"));
+                return dataItem[field];
+            }
+        }).data("kendoTooltip");
+    }
+    // 设置数据源
+    function setGridDataSource() {
+        var data = getGridDataSource("/base/goods/loadData")
+        var grid = $("#" + gridName).data("kendoGrid");
+        grid.setDataSource(data);
+    }
+
+
+    // 创建
+    function saveStockBegin() {
+        if ($("#stockBeginForm").validationEngine("validate")) {
+            var warehouseId = $("#warehouseId").val();
+            var grid = $("#" + gridName).data("kendoGrid");
+            var checked = grid.getChecked();
+            if (checked != "" && checked.length >= 1) {
+                var goodsIds = [];
+                var goodsPrice = [];
+                var stockAmounts = [];
+                for (var i = 0; i < checked.length; i++) {
+                    var dataItem = checked[i];
+                    var stockAmount = dataItem.stockAmount;
+                    var normalPrice = dataItem.normalPrice;
+                    if (isEmpty(normalPrice)) {
+                        $.core.showErrogMsg("请输入第【" + (i + 1) + "】行中的产品单价!")
+                        return;
+                    }
+                    if (isEmpty(stockAmount)) {
+                        $.core.showErrogMsg("请输入第【" + (i + 1) + "】行中的期初库存数量!")
+                        return;
+                    }
+                    goodsIds.push(dataItem.id);
+                    goodsPrice.push(normalPrice);
+                    stockAmounts.push(stockAmount);
+                }
+                goodsIds = goodsIds.join(",");
+                goodsPrice = goodsPrice.join(",");
+                stockAmounts = stockAmounts.join(",");
+                $.ajax({
+                    url: "${ctx}/crm/stock/stockBegin/saveStockBegin",
+                    type: "post",
+                    dataType: "json",
+                    data: {
+                        goodsIds: goodsIds,
+                        goodsPrice: goodsPrice,
+                        stockAmounts: stockAmounts,
+                        warehouseId: warehouseId
+                    }, success: function (res) {
+                        if (res.status) {
+                            $.core.showMsg(res.msg);
+                            $.core.closeWin();
+                        } else {
+                            $.core.showErrogMsg(res.msg);
+                        }
+                    }
+                })
+            } else {
+                $.core.showErrogMsg("请选择需要操作的数据！");
+            }
+        }
+    }
+
+
+</script>

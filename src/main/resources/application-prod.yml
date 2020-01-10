@@ -1,0 +1,6 @@
+server:
+  port: 80
+  context-path: /
+person:
+  name: 王伟华生产
+  age: 24

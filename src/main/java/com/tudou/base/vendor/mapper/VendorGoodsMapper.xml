@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tudou.base.vendor.mapper.VendorGoodsMapper" >
+  <resultMap id="BaseResultMap" type="com.tudou.base.vendor.entity.VendorGoods" >
+    <!--
+      WARNING - @mbggenerated
+    -->
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="goods_id" property="goodsId" jdbcType="VARCHAR" />
+    <result column="goods_name" property="goodsName" jdbcType="VARCHAR" />
+    <result column="goods_type_id" property="goodsTypeId" jdbcType="VARCHAR" />
+    <result column="goods_type_name" property="goodsTypeName" jdbcType="VARCHAR" />
+    <result column="goods_unit_id" property="goodsUnitId" jdbcType="VARCHAR" />
+    <result column="goods_unit_name" property="goodsUnitName" jdbcType="VARCHAR" />
+    <result column="goods_brand_id" property="goodsBrandId" jdbcType="VARCHAR" />
+    <result column="goods_brand_name" property="goodsBrandName" jdbcType="VARCHAR" />
+    <result column="goods_model" property="goodsModel" jdbcType="VARCHAR" />
+    <result column="vendor_id" property="vendorId" jdbcType="VARCHAR" />
+    <result column="vendor_name" property="vendorName" jdbcType="VARCHAR" />
+    <result column="normal_price" property="normalPrice" jdbcType="DECIMAL" />
+    <result column="server_flag" property="serverFlag" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="create_emp" property="createEmp" jdbcType="VARCHAR" />
+    <result column="create_emp_id" property="createEmpId" jdbcType="VARCHAR" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+    <result column="modify_emp" property="modifyEmp" jdbcType="VARCHAR" />
+    <result column="modify_emp_id" property="modifyEmpId" jdbcType="VARCHAR" />
+  </resultMap>
+</mapper>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<!-- SPA container define -->
+<div id="application"></div>
+<!-- loyout template define -->
+<script id="layout-template" type="text/x-kendo-template">
+    <div id="content"></div>
+</script>
+<!-- edit view template define -->
+<script id="editForm-template" type="text/x-kendo-template">
+    <div id="editForm-pane" style="overflow: auto;" data-bind="style: {height: contentHeight}">
+        <form id="editForm" style="padding: 15px;">
+            <div class="row">
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="id"
+                           class="top-label required">产品编码：</label>
+                    <input id="id" class="k-textbox validate[required,custom[onlyLetterNumber]]"
+                           data-bind="value:editModelData.id"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="goodsName"
+                           class="top-label required">产品名称：</label>
+                    <input id="goodsName" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.goodsName"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="goodsType"
+                           class="top-label required">类型：</label>
+                    <input id="goodsType" class="validate[required]" data-role="dropdownlist"
+                           data-bind="value:editModelData.goodsType,source:goodsTypeSource" data-text-field="text"
+                           data-value-field="id" data-filter="contains" data-auto-bind="true"
+                           data-value-primitive="true" data-change="editFormModel.goodsTypeChange"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="goodsUnit"
+                           class="top-label required">单位：</label>
+                    <input id="goodsUnit" class="validate[required]" data-role="dropdownlist"
+                           data-bind="value:editModelData.goodsUnit,source:goodsUnitSource" data-text-field="text"
+                           data-value-field="id" data-filter="contains" data-auto-bind="true"
+                           data-value-primitive="true" data-change="editFormModel.goodsUnitChange"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="goodsBrand"
+                           class="top-label required">品牌：</label>
+                    <input id="goodsBrand" class="validate[required]" data-role="dropdownlist"
+                           data-bind="value:editModelData.goodsBrand,source:goodsBrandSource" data-text-field="text"
+                           data-value-field="id" data-filter="contains" data-auto-bind="true"
+                           data-value-primitive="true" data-change="editFormModel.goodsBrandChange"
+                            >
+                </div>
+
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="goodsModel"
+                           class="top-label ">规格型号：</label>
+                    <input id="goodsModel" class="k-textbox "
+                           data-bind="value:editModelData.goodsModel"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="goodsBarcode"
+                           class="top-label ">条形码：</label>
+                    <input id="goodsBarcode" class="k-textbox "
+                           data-bind="value:editModelData.goodsBarcode"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="sapCode"
+                           class="top-label ">sap物料编码：</label>
+                    <input id="sapCode" class="k-textbox "
+                           data-bind="value:editModelData.sapCode"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="normalPrice"
+                           class="top-label ">标准价格：</label>
+                    <input id="normalPrice" class="validate[required]" data-role="numerictextbox"
+                           data-bind="value:editModelData.normalPrice"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="rate"
+                           class="top-label ">税率(%)：</label>
+                    <input id="rate" class="validate[required]" data-role="numerictextbox"
+                           data-bind="value:editModelData.rate"
+                            >
+                </div>
+                <div class="col-md-3 col-sm-3 col-xs-3">
+                    <label for="purchasePrice"
+                           class="top-label ">采购参考价：</label>
+                    <input id="purchasePrice" class="validate[required]" data-role="numerictextbox"
+                           data-bind="value:editModelData.purchasePrice"
+                            >
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2 col-sm-2 col-xs-2">
+                    <button name="saveEditInfo" class="k-button" type="button" data-role="button"
+                            role="button"
+                            data-bind="events: {click: saveEditInfo}"><span
+                            class="fa fa-save"></span>保存
+                    </button>
+                    <button name="back" class="k-button" type="button" data-role="button"
+                            role="button"
+                            data-bind="events: {click: back}"><span
+                            class="fa fa-mail-reply"></span>返回
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+</body>
+<script>
+    // 数据模型
+    var editFormModel = kendo.observable({
+        editModelData: {},
+        op: "create",
+        contentHeight: document.documentElement.clientHeight - 37 + "px",
+        reset: function () {
+            var that = this;
+            that.set("editModelData", {});
+        },
+        saveEditInfo: function () {
+            var that = this;
+            if ($("#editForm").validationEngine("validate")) {
+                var req = {};
+                var info;
+                info = jQuery.extend(true, {}, that.get("editModelData"));
+                $.extend(req, info);
+                $.ajax({
+                    url: "/base/goods/" + that.op,
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify(info),
+                    success: function (res) {
+                        if (res.status) {
+                            that.set("op", "update");
+                            $.core.showMsg(res.msg)
+                        } else {
+                            $.core.showErrogMsg(res.msg);
+                        }
+                    }
+                })
+            }
+        },
+        back: function () {
+            history.back(-1);
+        },
+        goodsTypeChange: function (e) {
+            var that = editFormModel;
+            var value = this.value();
+            var text = this.text();
+            that.set("editModelData.goodsType", value);
+            that.set("editModelData.goodsTypeName", text);
+        },
+        goodsUnitChange: function (e) {
+            var that = editFormModel;
+            var value = this.value();
+            var text = this.text();
+            that.set("editModelData.goodsUnit", value);
+            that.set("editModelData.goodsUnitName", text);
+        },
+        goodsBrandChange: function (e) {
+            var that = editFormModel;
+            var value = this.value();
+            var text = this.text();
+            that.set("editModelData.goodsBrand", value);
+            that.set("editModelData.goodsBrandName", text);
+        },
+        goodsTypeSource: getDropDownDataSource("${ctx}/base/goodsType/findCombo"),
+        goodsUnitSource: getDropDownDataSource("${ctx}/base/goodsUnit/findCombo"),
+        goodsBrandSource: getDropDownDataSource("${ctx}/base/goodsBrand/findCombo")
+    });
+    // 初始化
+    function initEditForm() {
+        var id = '${id}';
+        if (isNotEmpty(id)) {
+            editFormModel.op = "update";
+            readOnlyById("id")
+            getDataInfoById("/base/goods/" + id + "/getDataInfoById", function (res) {
+                if (res.status) {
+                    editFormModel.set("editModelData", res.other.modelData);
+                } else {
+                    $.core.showErrogMsg(res.msg);
+                }
+            });
+        } else {
+            var that = editFormModel;
+            that.editModelData.set("normalPrice", 0);
+            that.editModelData.set("rate", 0);
+            that.editModelData.set("purchasePrice", 0);
+            that.op = "create";
+        }
+    }
+    //基本信息页面
+    var editFormView = new kendo.View("editForm-template", {
+        model: editFormModel, init: initEditForm
+    });
+    // Routing
+    var router = new kendo.Router();
+    // Layout
+    var layout = new kendo.Layout("layout-template");
+    // 渲染
+    layout.render("#application");
+    // 基本信息
+    router.route("/", function () {
+        layout.showIn("#content", editFormView);
+    });
+    $(function () {
+        //开户路由
+        router.start();
+    });
+</script>

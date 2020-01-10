@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<div id="indexGrid" style="height: 100%"></div>
+</body>
+<script>
+    var gridName = "indexGrid";
+    var warehouseTypeDataSource = getStaticDataSourceByCommon('enum_extra.enums.warehouse.warheouseTypeEnum');
+    $(function () {
+        setGrid();
+        setGridDataSource();
+    });
+    // 初始化表格
+    function setGrid() {
+        $("#" + gridName).kendoGrid({
+                    toolbar: [
+                        {
+                            template: "<button id=\"opCreareIndex\" name=\"opCreareIndex\" class = \"k-button \" type=\"button\" data-role=\"button\" role=\"button\" aria-disabled=\"false\"  onclick=\"creareIndex();\"><span class=\"fa fa-plus fa-fw\"><\/span>创建<\/button>",
+                            name: "opCreareIndex",
+                            text: "新增"
+                        }, {
+                            template: "<button id=\"opDeleteBatchIndex\" name=\"opDeleteBatchIndex\" class = \"k-button \" type=\"button\" data-role=\"button\" role=\"button\" aria-disabled=\"false\"  onclick=\"deleteBatchIndex();\"><span class=\"fa fa-remove fa-fw\"><\/span>删除<\/button>",
+                            name: "opDeleteBatchIndex",
+                            text: "删除"
+                        }
+                    ],
+                    pageable: {
+                        pageSizes: [20, 50, 100, 500],
+                        pageSize: 20,
+                        refresh: true
+                    },
+                    sortable: {mode: "multiple", allowUnsort: true},
+                    allowCopy: true,
+                    filterable: {
+                        mode: "row,menu"
+                    },
+                    resizable: true,
+                    editable: false,
+                    reorderable: true,
+                    scrollable: {virtual: false},
+                    columns: [
+                        {
+                            locked:true,
+                            field: "indexCkAll",
+                            sortable: false,
+                            filterable: false,
+                            width: "35px",
+                            headerTemplate: '<input type="checkbox" class="k-checkbox" id="indexCkAll"/><label for="indexCkAll" class="k-checkbox-label" onclick="javascript:if($(\'#indexCkAll\').is(\':checked\')){$(\'input[name=opindexCheck]\').prop(\'checked\',false);} else {$(\'input[name=opindexCheck]\').prop(\'checked\',true)}"></label>',
+                            template: function (e) {
+                                return '<input type="checkbox" name="opindexCheck" class="k-checkbox" data-type="ck" id="ck' + e.uid + '"/><label for="ck' + e.uid + '" class="k-checkbox-label" ></label>';
+                            }
+                        },
+                        {
+                            locked:true,
+                            title: "操作",
+                            width: "80px",
+                            command: [{
+                                name: "opEdit",
+                                text: '<span class="fa fa-pencil fa-fw"></span>',
+                                title: "编辑",
+                                click: function (e) {
+                                    e.preventDefault();
+                                    var dataItem = $("#" + gridName).data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+                                    editIndexInfo(dataItem.id);
+                                }
+                            }, {
+                                name: "opDelete",
+                                text: '<span class="fa fa-remove fa-fw"></span>',
+                                title: "删除",
+                                click: function (e) {
+                                    e.preventDefault();
+                                    var dataItem = $("#" + gridName).data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+                                    deleteIndexInfo(dataItem.id);
+                                }
+                            }]
+                        },
+                        {
+                            locked:true,
+                            field: "id",
+                            width: "120px",
+                            title: "仓库编码"
+                        }
+                        ,
+                        {
+                            locked:true,
+                            field: "warehouseName",
+                            width: "140px",
+                            title: "仓库名称"
+                        }
+                        ,
+                        {
+                            locked:true,
+                            field: "warehouseType",
+                            width: "140px",
+                            title: "类型名称",
+                            filterable: {
+                                cell: {
+                                    template: function (args) {
+                                        args.element.kendoComboBox({
+                                            dataSource: warehouseTypeDataSource,
+                                            dataValueField: "id",
+                                            dataTextField: "text",
+                                            valuePrimitive: true,
+                                            autoBind: true
+                                        });
+                                    },
+                                    showOperators: false
+                                }
+                            },
+                            template: function (e) {
+                                return transCodeToNameByDataSource(warehouseTypeDataSource, e.warehouseType);
+                            }
+                        }
+                        ,
+                        {
+                            field: "department",
+                            width: "140px",
+                            title: "所属机构"
+                        }
+                        ,
+                        {
+                            field: "area",
+                            width: "120px",
+                            title: "所属区域"
+                        }
+                        ,
+                        {
+                            field: "country",
+                            width: "120px",
+                            title: "国家"
+                        }
+                        ,
+                        {
+                            field: "province",
+                            width: "120px",
+                            title: "省份"
+                        }
+                        ,
+                        {
+                            field: "city",
+                            width: "120px",
+                            title: "城市"
+                        }
+                        ,
+                        {
+                            field: "postCode",
+                            width: "120px",
+                            title: "邮编"
+                        }
+                        ,
+                        {
+                            field: "address",
+                            width: "120px",
+                            title: "地址"
+                        }
+                        ,
+                        {
+                            field: "contactPerson",
+                            width: "120px",
+                            title: "联系人"
+                        }
+                        ,
+                        {
+                            field: "contactPhone",
+                            width: "120px",
+                            title: "联系电话"
+                        }
+                        ,
+                        {
+                            field: "contactFax",
+                            width: "120px",
+                            title: "传真"
+                        }
+                        ,
+                        {
+                            field: "contactEmail",
+                            width: "120px",
+                            title: "邮件"
+                        }
+                        ,
+                        {
+                            field: "remark",
+                            width: "120px",
+                            title: "备注"
+                            , attributes: {
+                            style: "white-space: nowrap",
+                            tipflag: "hasTooltip",
+                            datafield: "remark"
+                        }
+                        }
+                        ,
+                        {
+                            field: "createTime",
+                            width: "120px",
+                            title: "创建时间"
+                        }
+                        ,
+                        {
+                            field: "createEmp",
+                            width: "120px",
+                            title: "创建人"
+                        }
+                        ,
+                        {
+                            field: "createEmpId",
+                            width: "120px",
+                            title: "创建人编号"
+                        }
+                        ,
+                        {
+                            field: "modifyTime",
+                            width: "120px",
+                            title: "修改时间"
+                        }
+                        ,
+                        {
+                            field: "modifyEmp",
+                            width: "120px",
+                            title: "修改人"
+                        }
+                        ,
+                        {
+                            field: "modifyEmpId",
+                            width: "120px",
+                            title: "修改人编号"
+                        }
+
+                    ],
+                    filterable: {
+                        mode: "row,menu",
+                        messages: messages,
+                        operators: {
+                            string: operators
+                        }
+                        ,
+                        extra: true
+                    }, dataBound: function (e) {
+                        gridOnDataBound();
+                    }
+                }
+        )
+        ;
+        $("#" + gridName).kendoTooltip({
+            filter: "td[tipflag='hasTooltip']", position: "top", content: function (e) {
+                var field = $(e.target).attr("datafield");
+                var dataItem = $("#" + gridName).data("kendoGrid").dataItem(e.target.closest("tr"));
+                return dataItem[field];
+            }
+        }).data("kendoTooltip");
+    }
+    // 设置数据源
+    function setGridDataSource() {
+        var data = getGridDataSource("/base/warehouse/loadData")
+        var grid = $("#" + gridName).data("kendoGrid");
+        grid.setDataSource(data);
+    }
+
+    // 编辑
+    function editIndexInfo(id) {
+        window.location.href = '${ctx}/base/warehouse/edit?id=' + id;
+    }
+
+    // 删除
+    function deleteIndexInfo(id) {
+        actionInfo({
+            url: '${ctx}/base/warehouse/' + id + "/deleteById",
+            gridName: gridName
+        });
+    }
+
+    // 创建
+    function creareIndex() {
+        window.location.href = '${ctx}/base/warehouse/edit';
+    }
+
+    // 批量删除
+    function deleteBatchIndex() {
+        batchActionByIds({
+            url: '${ctx}/base/warehouse/deleteBatchByIds',
+            gridName: gridName
+        });
+    }
+
+</script>

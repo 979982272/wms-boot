@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<div id="indexGrid" style="height: 100%"></div>
+</body>
+<script>
+    var gridName = "indexGrid";
+    $(function () {
+        setGrid();
+        setGridDataSource();
+        $.core.data("multipleSelectGoods", "");
+    });
+    // 初始化表格
+    function setGrid() {
+        $("#" + gridName).kendoGrid({
+                    pageable: {
+                        pageSizes: [20, 50, 100, 500],
+                        pageSize: 20,
+                        refresh: true
+                    },
+                    sortable: {mode: "multiple", allowUnsort: true},
+                    allowCopy: true,
+                    filterable: {
+                        mode: "row,menu"
+                    },
+                    resizable: true,
+                    editable: false,
+                    reorderable: true,
+                    scrollable: {virtual: false},
+                    columns: [
+                        {
+                            locked: true,
+                            title: "操作",
+                            width: "80px",
+                            command: [{
+                                name: "opEdit",
+                                text: '<span class="fa fa-check fa-fw"></span>',
+                                title: "选择",
+                                click: function (e) {
+                                    e.preventDefault();
+                                    var dataItem = $("#" + gridName).data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+                                    $.core.data("selectGoods", dataItem);
+                                    $.core.closeWin();
+                                }
+                            }]
+                        },
+                        {
+                            locked: true,
+                            field: "goodsId",
+                            width: "120px",
+                            title: "产品编码",
+                            attributes: {
+                                style: "white-space: nowrap",
+                                tipflag: "hasTooltip",
+                                datafield: "goodsId"
+                            }
+                        }
+                        ,
+                        {
+                            locked: true,
+                            field: "goodsName",
+                            width: "120px",
+                            title: "产品名称",
+                            attributes: {
+                                style: "white-space: nowrap",
+                                tipflag: "hasTooltip",
+                                datafield: "goodsName"
+                            }
+                        }
+                        ,
+                        {
+                            field: "goodsTypeName",
+                            width: "120px",
+                            title: "产品类型"
+                        }
+                        ,
+                        {
+                            field: "goodsUnitName",
+                            width: "120px",
+                            title: "产品单位"
+                        }
+                        ,
+                        {
+                            field: "goodsBrandName",
+                            width: "120px",
+                            title: "品牌"
+                        }
+                        ,
+                        {
+                            field: "goodsModel",
+                            width: "120px",
+                            title: "规格型号"
+                        },
+                        {
+                            field: "normalPrice",
+                            width: "120px",
+                            title: "供应价格",
+                            attributes: {
+                                style: "text-align:right"
+                            }
+                        }
+                        ,
+                        {
+                            field: "goodsBarcode",
+                            width: "120px",
+                            title: "条形码",
+                            attributes: {
+                                style: "white-space: nowrap",
+                                tipflag: "hasTooltip",
+                                datafield: "goodsBarcode"
+                            }
+                        }
+                        ,
+                        {
+                            field: "sapCode",
+                            width: "120px",
+                            title: "sap物料编码",
+                            attributes: {
+                                style: "white-space: nowrap",
+                                tipflag: "hasTooltip",
+                                datafield: "sapCode"
+                            }
+                        }
+
+
+                    ],
+                    filterable: {
+                        mode: "row,menu",
+                        messages: messages,
+                        operators: {
+                            string: operators
+                        }
+                        ,
+                        extra: true
+                    }, dataBound: function (e) {
+                        gridOnDataBound();
+                    }
+                }
+        )
+        ;
+        $("#" + gridName).kendoTooltip({
+            filter: "td[tipflag='hasTooltip']", position: "top", content: function (e) {
+                var field = $(e.target).attr("datafield");
+                var dataItem = $("#" + gridName).data("kendoGrid").dataItem(e.target.closest("tr"));
+                return dataItem[field];
+            }
+        }).data("kendoTooltip");
+    }
+    // 设置数据源
+    function setGridDataSource() {
+        var data = getGridDataSource("/base/vendorGoods/loadData?vendorId=${vendorId}")
+        var grid = $("#" + gridName).data("kendoGrid");
+        grid.setDataSource(data);
+    }
+
+</script>

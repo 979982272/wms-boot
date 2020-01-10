@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.tudou.crm.storage.outStorage.mapper.OutStorageWorkPartMapper">
+    <resultMap id="BaseResultMap" type="com.tudou.crm.storage.outStorage.entity.OutStorageWorkPart">
+        <!--
+          WARNING - @mbggenerated
+        -->
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="from_order_part" property="fromOrderPart" jdbcType="VARCHAR"/>
+        <result column="out_storage_work" property="outStorageWork" jdbcType="VARCHAR"/>
+        <result column="goods_id" property="goodsId" jdbcType="VARCHAR"/>
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="goods_unit_id" property="goodsUnitId" jdbcType="VARCHAR"/>
+        <result column="goods_unit_name" property="goodsUnitName" jdbcType="VARCHAR"/>
+        <result column="goods_model" property="goodsModel" jdbcType="VARCHAR"/>
+        <result column="plan_amount" property="planAmount" jdbcType="DECIMAL"/>
+        <result column="delivery_amount" property="deliveryAmount" jdbcType="DECIMAL"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="server_flag" property="serverFlag" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="create_emp" property="createEmp" jdbcType="VARCHAR"/>
+        <result column="create_emp_id" property="createEmpId" jdbcType="VARCHAR"/>
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+        <result column="modify_emp" property="modifyEmp" jdbcType="VARCHAR"/>
+        <result column="modify_emp_id" property="modifyEmpId" jdbcType="VARCHAR"/>
+    </resultMap>
+    <select id="findOutStorageWorkPartByOutStorageWork" resultMap="BaseResultMap">
+          SELECT * FROM crm_out_storage_work_part WHERE out_storage_work = #{id}
+    </select>
+</mapper>

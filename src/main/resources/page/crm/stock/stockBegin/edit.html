@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<!-- SPA container define -->
+<div id="application"></div>
+<!-- loyout template define -->
+<script id="layout-template" type="text/x-kendo-template">
+    <div id="content"></div>
+</script>
+<!-- edit view template define -->
+<script id="editForm-template" type="text/x-kendo-template">
+    <div data-role="toolbar">
+        <div style="padding-left: 15px">
+            <button name="saveEditInfo" class="k-button" type="button" data-role="button"
+                    role="button" id="saveEditInfo"
+                    data-bind="events: {click: saveEditInfo}"><span
+                    class="fa fa-save"></span>保存
+            </button>
+            <button name="back" class="k-button" type="button" data-role="button"
+                    role="button"
+                    data-bind="events: {click: back}"><span
+                    class="fa fa-mail-reply"></span>关闭
+            </button>
+        </div>
+    </div>
+    <div id="editForm-pane" style="overflow: auto;" data-bind="style: {height: contentHeight}">
+        <form id="editForm" style="padding: 15px;">
+            <div class="row">
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="id"
+                           class="top-label required">主键：</label>
+                    <input id="id" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.id"
+                           readonly
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="warehouseId"
+                           class="top-label required">仓库编码：</label>
+                    <input id="warehouseId" data-role="dropdownlist" data-value-field="id"
+                           data-text-field="text" readonly
+                           class="validate[required]"
+                           data-bind="value:editModelData.warehouseId,source:warehouseIdDataSource"
+                           data-value-primitive="true"
+                           data-auto-bind="true" data-filter="contains"
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="goodsId"
+                           class="top-label required">产品编码：</label>
+                    <input id="goodsId" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.goodsId"
+                           readonly
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="goodsName"
+                           class="top-label required">产品名称：</label>
+                    <input id="goodsName" class="k-textbox validate[required]"
+                           data-bind="value:editModelData.goodsName"
+                           readonly
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="goodsUnitId"
+                           class="top-label required">单位编码：</label>
+                    <input id="goodsUnitId" data-role="dropdownlist" data-value-field="id"
+                           data-text-field="text"
+                           class="validate[required]"
+                           data-bind="value:editModelData.goodsUnitId,source:goodsUnitIdDataSource"
+                           data-value-primitive="true"
+                           data-auto-bind="true" data-filter="contains" readonly
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="goodsModel"
+                           class="top-label">规格型号：</label>
+                    <input id="goodsModel" class="k-textbox"
+                           data-bind="value:editModelData.goodsModel"
+
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="stockAmount"
+                           class="top-label required">期初库存：</label>
+                    <input id="stockAmount" class="validate[required]"
+                           data-bind="value:editModelData.stockAmount"
+                           data-role="numerictextbox"
+                            >
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4">
+                    <label for="unitPrice"
+                           class="top-label required">单位价格：</label>
+                    <input id="unitPrice" class="validate[required]"
+                           data-bind="value:editModelData.unitPrice"
+                           data-role="numerictextbox"
+                            >
+                </div>
+            </div>
+        </form>
+    </div>
+</script>
+</body>
+<script>
+    // 数据模型
+    var editFormModel = kendo.observable({
+        editModelData: {},
+        op: "create",
+        contentHeight: document.documentElement.clientHeight - 37 + "px",
+        reset: function () {
+            var that = this;
+            that.set("editModelData", {});
+        },
+        saveEditInfo: function () {
+            var that = this;
+            if ($("#editForm").validationEngine("validate")) {
+                var req = {};
+                var info;
+                info = jQuery.extend(true, {}, that.get("editModelData"));
+                $.extend(req, info);
+                $.ajax({
+                    url: "/crm/stock/stockBegin/" + that.op,
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify(info),
+                    success: function (res) {
+                        if (res.status) {
+                            that.set("op", "update");
+                            $.core.showMsg(res.msg)
+                            $.core.closeWin();
+                        } else {
+                            $.core.showErrogMsg(res.msg);
+                        }
+                    }
+                })
+            }
+        },
+        back: function () {
+            $.core.closeWin();
+        }
+        , warehouseIdDataSource: getDropDownDataSource('/base/warehouse/findWarehouseCombo')
+        , goodsUnitIdDataSource: getDropDownDataSource('/base/goodsUnit/findCombo')
+    });
+    // 初始化
+    function initEditForm() {
+        var id = '${id}';
+        if (isNotEmpty(id)) {
+            readOnlyById("id");
+            readOnlyById("goodsId");
+            readOnlyById("goodsModel");
+            readOnlyById("goodsName");
+            editFormModel.op = "update";
+            getDataInfoById("/crm/stock/stockBegin/" + id + "/getDataInfoById", function (res) {
+                if (res.status) {
+                    editFormModel.set("editModelData", res.other.modelData);
+                    var status = parseInt(editFormModel.get("editModelData.status"));
+                    if (20 == status) {
+                        $("#saveEditInfo").attr("disabled", true);
+                    }
+                } else {
+                    $.core.showErrogMsg(res.msg);
+                }
+            });
+        } else {
+            editFormModel.op = "create";
+        }
+    }
+    //基本信息页面
+    var editFormView = new kendo.View("editForm-template", {
+        model: editFormModel, init: initEditForm
+    });
+    // Routing
+    var router = new kendo.Router();
+    // Layout
+    var layout = new kendo.Layout("layout-template");
+    // 渲染
+    layout.render("#application");
+    // 基本信息
+    router.route("/", function () {
+        layout.showIn("#content", editFormView);
+    });
+    $(function () {
+        //开户路由
+        router.start();
+    });
+</script>

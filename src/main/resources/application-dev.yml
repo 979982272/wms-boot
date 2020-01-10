@@ -1,0 +1,16 @@
+server:
+  port: 80
+  context-path: /
+person:
+  name: 开发环境
+  age: 24
+##数据源配置
+spring:
+  datasource:
+    url: ${connection.url}
+    username: ${connection.username}
+    password: ${connection.password}
+    type: ${connection.type}
+    driverClassName: ${connection.driver}
+
+

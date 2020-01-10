@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+    <style>
+        .k-button {
+            min-width: inherit;
+        }
+    </style>
+</head>
+<body style="overflow: hidden">
+<div id="indexGrid" style="height: 100%"></div>
+</body>
+<script>
+    var gridName = "indexGrid";
+    $(function () {
+        setGrid();
+    });
+
+    // 初始化表格
+    function setGrid() {
+        $("#" + gridName).kendoTreeList({
+            toolbar: [{
+                template: "<button id=\"opAdd\" name=\"opAdd\" class = \"k-button \" type=\"button\" data-role=\"button\" role=\"button\" aria-disabled=\"false\"  onclick=\"creareIndex();\"><span class=\"fa fa-plus fa-fw\"><\/span>创建<\/button>",
+                name: "opAdd",
+                text: "创建"
+            }],
+            filterable: false,
+            editable: false,
+            columns: [{
+                width: '40px',
+                title: "操作",
+                menu: false,
+                command: [
+                    {
+                        name: "opAddNext",
+                        text: "",
+                        title: "添加下级",
+                        attributes: {style: "white-space: nowrap"},
+                        iconClass: "fa fa-plus fa-fw",
+                        click: function (e) {
+                            e.preventDefault();
+                            var dataItem = $("#" + gridName).data("kendoTreeList").dataItem($(e.currentTarget).closest("tr"));
+                            addNext(dataItem.id)
+                        }
+                    }, {
+                        name: "opEdit",
+                        text: '',
+                        title: "编辑",
+                        attributes: {style: "white-space: nowrap"},
+                        iconClass: "fa fa-pencil fa-fw",
+                        click: function (e) {
+                            e.preventDefault();
+                            var dataItem = $("#" + gridName).data("kendoTreeList").dataItem($(e.currentTarget).closest("tr"));
+                            editIndexInfo(dataItem.id);
+                        }
+                    }, {
+                        name: "opDelete",
+                        text: "",
+                        title: "删除",
+                        attributes: {style: "white-space: nowrap"},
+                        iconClass: "fa fa-remove fa-fw",
+                        click: function (e) {
+                            e.preventDefault();
+                            var dataItem = $("#" + gridName).data("kendoTreeList").dataItem($(e.currentTarget).closest("tr"));
+                            deleteIndexInfo(dataItem.id);
+                        }
+                    }]
+            },
+                {
+                    field: "id",
+                    expandable: "true",
+                    width: "180px",
+                    title: "类型编号"
+                }, {
+                    field: "name",
+                    width: "120px",
+                    title: "类型名称"
+                }, {
+                    field: "des",
+                    width: "240px",
+                    title: "描述"
+                }, {
+                    field: "remark",
+                    width: "150px",
+                    title: "备注"
+                }],
+            selectable: true,
+            sortable: false,
+            dataSource: {
+                schema: {model: {id: "id"}},
+                serverAggregates: true,
+                autoSync: false,
+                transport: {
+                    read: {
+                        dataType: "json",
+                        type: "get",
+                        contentType: "application/json",
+                        url: "/base/goodsType/loadGoodsTypeData"
+                    }
+                }
+            },
+            scrollable: true,
+            dataBound: function (e) {
+                gridOnDataBound();
+            }
+        });
+    }
+
+    // 添加下一级
+    function addNext(id) {
+        $.core.open('${ctx}/base/goodsType/addNext?parentId=' + id, "新建产品类型", {
+            close: function () {
+                $.core.refreshTree(gridName)
+            }
+        });
+    }
+
+    // 编辑
+    function editIndexInfo(id) {
+        $.core.open('${ctx}/base/goodsType/edit?id=' + id, "编辑产品类型", {
+            close: function () {
+                $.core.refreshTree(gridName)
+            }
+        });
+    }
+
+    // 删除
+    function deleteIndexInfo(id) {
+        actionInfo({
+            url: '${ctx}/base/goodsType/' + id + "/deleteById",
+            gridName: gridName,
+            tree: true
+        });
+    }
+
+    // 创建
+    function creareIndex() {
+        $.core.open('${ctx}/base/goodsType/edit', "新建产品类型", {
+            close: function () {
+                $.core.refreshTree(gridName)
+            }
+        });
+    }
+    // 批量删除
+    function deleteBatchIndex() {
+        batchActionByIds({
+            url: '${ctx}/base/goodsType/deleteBatchByIds',
+            gridName: gridName
+        });
+    }
+</script>

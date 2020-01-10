@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<div id="indexGrid" style="height: 100%"></div>
+</body>
+<script>
+    var gridName = "indexGrid";
+    $(function () {
+        setGrid();
+        setGridDataSource();
+    });
+    // 初始化表格
+    function setGrid() {
+        $("#" + gridName).kendoGrid({
+                    toolbar: [
+                        {
+                            template: "<button id=\"opCreareIndex\" name=\"opCreareIndex\" class = \"k-button \" type=\"button\" data-role=\"button\" role=\"button\" aria-disabled=\"false\"  onclick=\"creareIndex();\"><span class=\"fa fa-plus fa-fw\"><\/span>创建<\/button>",
+                            name: "opCreareIndex",
+                            text: "新增"
+                        }, {
+                            template: "<button id=\"opDeleteBatchIndex\" name=\"opDeleteBatchIndex\" class = \"k-button \" type=\"button\" data-role=\"button\" role=\"button\" aria-disabled=\"false\"  onclick=\"deleteBatchIndex();\"><span class=\"fa fa-remove fa-fw\"><\/span>删除<\/button>",
+                            name: "opDeleteBatchIndex",
+                            text: "删除"
+                        }
+                    ],
+                    pageable: {
+                        pageSizes: [20, 50, 100, 500],
+                        pageSize: 20,
+                        refresh: true
+                    },
+                    sortable: {mode: "multiple", allowUnsort: true},
+                    allowCopy: true,
+                    filterable: {
+                        mode: "row,menu"
+                    },
+                    resizable: true,
+                    editable: false,
+                    reorderable: true,
+                    scrollable: {virtual: false},
+                    columns: [
+                        {
+                            field: "indexCkAll",
+                            sortable: false,
+                            filterable: false,
+                            width: "35px",
+                            headerTemplate: '<input type="checkbox" class="k-checkbox" id="indexCkAll"/><label for="indexCkAll" class="k-checkbox-label" onclick="javascript:if($(\'#indexCkAll\').is(\':checked\')){$(\'input[name=opindexCheck]\').prop(\'checked\',false);} else {$(\'input[name=opindexCheck]\').prop(\'checked\',true)}"></label>',
+                            template: function (e) {
+                                return '<input type="checkbox" name="opindexCheck" class="k-checkbox" data-type="ck" id="ck' + e.uid + '"/><label for="ck' + e.uid + '" class="k-checkbox-label" ></label>';
+                            }
+                        },
+                        {
+                            title: "操作",
+                            width: "80px",
+                            command: [{
+                                name: "opEdit",
+                                text: '<span class="fa fa-pencil fa-fw"></span>',
+                                title: "编辑",
+                                click: function (e) {
+                                    e.preventDefault();
+                                    var dataItem = $("#" + gridName).data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+                                    editIndexInfo(dataItem.id);
+                                }
+                            }, {
+                                name: "opDelete",
+                                text: '<span class="fa fa-remove fa-fw"></span>',
+                                title: "删除",
+                                click: function (e) {
+                                    e.preventDefault();
+                                    var dataItem = $("#" + gridName).data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+                                    deleteIndexInfo(dataItem.id);
+                                }
+                            }]
+                        },
+                        {
+                            field: "id",
+                            width: "120",
+                            title: "单位编号"
+                        }
+                        ,
+                        {
+                            field: "unitName",
+                            width: "120",
+                            title: "单位名称"
+                        }
+                        ,
+                        {
+                            field: "createTime",
+                            width: "120",
+                            title: "创建时间"
+                        }
+                        ,
+                        {
+                            field: "createEmp",
+                            width: "120",
+                            title: "创建人"
+                        }
+                        ,
+                        {
+                            field: "createEmpId",
+                            width: "120",
+                            title: "创建人编号"
+                        }
+                        ,
+                        {
+                            field: "modifyTime",
+                            width: "120",
+                            title: "修改时间"
+                        }
+                        ,
+                        {
+                            field: "modifyEmp",
+                            width: "120",
+                            title: "修改人"
+                        }
+                        ,
+                        {
+                            field: "modifyEmpId",
+                            width: "120",
+                            title: "修改人编号"
+                        }
+                        ,
+                        {
+                            field: "remark",
+                            width: "120",
+                            title: "备注"
+                            , attributes: {
+                            style: "white-space: nowrap",
+                            tipflag: "hasTooltip",
+                            datafield: "remark"
+                        }
+                        }
+
+                    ],
+                    filterable: {
+                        mode: "row,menu",
+                        messages: messages,
+                        operators: {
+                            string: operators
+                        }
+                        ,
+                        extra: true
+                    }, dataBound: function (e) {
+                        gridOnDataBound();
+                    }
+                }
+        )
+        ;
+        $("#" + gridName).kendoTooltip({
+            filter: "td[tipflag='hasTooltip']", position: "top", content: function (e) {
+                var field = $(e.target).attr("datafield");
+                var dataItem = $("#" + gridName).data("kendoGrid").dataItem(e.target.closest("tr"));
+                return dataItem[field];
+            }
+        }).data("kendoTooltip");
+    }
+    // 设置数据源
+    function setGridDataSource() {
+        var data = getGridDataSource("/base/goodsUnit/loadData")
+        var grid = $("#" + gridName).data("kendoGrid");
+        grid.setDataSource(data);
+    }
+
+    // 编辑
+    function editIndexInfo(id) {
+        $.core.open('${ctx}/base/goodsUnit/edit?id=' + id, "编辑单位", {
+            close: function () {
+                $.core.refresh(gridName)
+            }
+        });
+    }
+
+    // 删除
+    function deleteIndexInfo(id) {
+        actionInfo({
+            url: '${ctx}/base/goodsUnit/' + id + "/deleteById",
+            gridName: gridName
+        });
+    }
+
+    // 创建
+    function creareIndex() {
+        $.core.open('${ctx}/base/goodsUnit/edit', "创建单位", {
+            close: function () {
+                $.core.refresh(gridName)
+            }
+        });
+    }
+
+    // 批量删除
+    function deleteBatchIndex() {
+        batchActionByIds({
+            url: '${ctx}/base/goodsUnit/deleteBatchByIds',
+            gridName: gridName
+        });
+    }
+
+</script>

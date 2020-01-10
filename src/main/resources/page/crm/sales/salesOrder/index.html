@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <#include "/common/head.html"/>
+</head>
+<body style="overflow: hidden">
+<div id="indexGrid" style="height: 100%"></div>
+<script id="detail-template" type="text/x-kendo-template">
+    <div class="detailGrid"></div>
+</script>
+</body>
+<script>
+    var detailGridName = "detailGrid";
+    var expandedRow;
+    var gridName = "indexGrid";
+    var orderStatusDataSource = getStaticDataSourceByCommon("enum_extra.enums.sales.SalesOrderStatusEnum");
+    $(function () {
+        setGrid();
+        setGridDataSource();
+    });
+    function setDetailGrid(e) {
+        e.preventDefault();
+        if (expandedRow != null && expandedRow[0] != e.masterRow[0]) {
+            var grid = $('#' + gridName).data('kendoGrid');
+            grid.collapseRow(expandedRow);
+        }
+        expandedRow = e.masterRow;
+        var detailRow = e.detailRow;
+        var dataItem = $("#" + gridName).data("kendoGrid").dataItem(expandedRow);
+        var grid = detailRow.find(".detailGrid").data("kendoGrid")
+        if (grid == undefined) {
+            detailRow.find(".detailGrid").kendoGrid({
+                        resizable: true,
+                        editable: false,
+                        reorderable: true,
+                        scrollable: {virtual: false},
+                        columns: [
+                            {
+                                locked: true,
+                                filterable: false,
+                                field: "goodsId",
+                                width: "140px",
+                                title: "产品编码"
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "goodsName",
+                                width: "140px",
+                                title: "产品名称"
+                                , attributes: {
+                                style: "white-space: nowrap",
+                                tipflag: "hasTooltip",
+                                datafield: "goodsName"
+                            }
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "goodsUnitName",
+                                width: "140px",
+                                title: "单位名称"
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "goodsModel",
+                                width: "140px",
+                                title: "规格型号",
+                                footerTemplate: function (e) {
+                                    return "合计:";
+                                }
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "salesAmount",
+                                width: "140px",
+                                title: "销售",
+                                attributes: {
+                                    style: "text-align:right"
+                                },
+                                footerTemplate: function (e) {
+                                    var data = e["salesAmount"];
+                                    if (isNotEmpty(data)) {
+                                        return data["sum"];
+                                    }
+                                }
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "deliveryAmount",
+                                width: "140px",
+                                title: "出库数量",
+                                footerTemplate: function (e) {
+                                    var data = e["deliveryAmount"];
+                                    if (isNotEmpty(data)) {
+                                        return data["sum"];
+                                    }
+                                },
+                                attributes: {
+                                    style: "text-align:right"
+                                }
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "unitPrice",
+                                width: "140px",
+                                title: "单位价格"
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "unitPriceRate",
+                                width: "140px",
+                                title: "含税单价"
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "totalPrice",
+                                width: "140px",
+                                title: "总价",
+                                footerTemplate: function (e) {
+                                    var data = e["totalPrice"];
+                                    if (isNotEmpty(data)) {
+                                        return data["sum"];
+                                    }
+                                }
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "totalPriceRate",
+                                width: "140px",
+                                title: "含税总价",
+                                footerTemplate: function (e) {
+                                    var data = e["totalPriceRate"];
+                                    if (isNotEmpty(data)) {
+                                        return data["sum"];
+                                    }
+                                }
+                            }
+                            ,
+                            {
+                                filterable: false,
+                                field: "remark",
+                                width: "340px",
+                                title: "备注"
+                            }
+
+                        ],
+                        filterable: {
+                            mode: "row,menu",
+                            messages: messages,
+                            operators: {
+                                string: operators
+                            }
+                            ,
+                            extra: true
+                        }, dataBound: function (e) {
+                            gridOnDataBound();
+                        }
+                    }
+            );
+            var data = getDetailGridDataSource("/crm/sales/salesOrderPart/loadDetailData?id=" + dataItem.id)
+            var grid = detailRow.find(".detailGrid").data("kendoGrid");
+            grid.setDataSource(data);
+        }
+    }
+    function getDetailGridDataSource(url) {
+        var data = new kendo.data.DataSource({
+            schema: {
+                total: "total",
+                data: "data",
+                groups: "data",
+                aggregates: "aggregates",
+                type: "json",
+                errors: "errors"
+            },
+            aggregate: [
+                {field: "salesAmount", aggregate: "sum"},
+                {field: "deliveryAmount", aggregate: "sum"},
+                {field: "totalPrice", aggregate: "sum"},
+                {field: "totalPriceRate", aggregate: "sum"},
+            ],
+            serverPaging: true,
+            serverFiltering: true,
+            serverSorting: true,
+            pageSize: 20,
+            page: 1,
+            transport: {
+                read: {
+                    dataType: "json",
+                    type: "POST",
+                    contentType: "application/json",
+                    url: url
+                }, parameterMap: function (e) {
+                    return JSON.stringify(e);
+                }
+            }
+        });
+        return data;
+    }
+    // 初始化表格
+    function setGrid() {
+        $("#" + gridName).kendoGrid({
+                    toolbar: [
+                        {
+                            template: "<button id=\"opCreareIndex\" name=\"opCreareIndex\" class = \"k-button \" type=\"button\" data-role=\"button\" role=\"button\" aria-disabled=\"false\"  onclick=\"creareIndex();\"><span class=\"fa fa-plus fa-fw\"><\/span>创建<\/button>",
+                            name: "opCreareIndex",
+                            text: "新增"
+                        }, {
+                            template: "<button id=\"opDeleteBatchIndex\" name=\"opDeleteBatchIndex\" class = \"k-button \" type=\"button\" data-role=\"button\" role=\"button\" aria-disabled=\"false\"  onclick=\"deleteBatchIndex();\"><span class=\"fa fa-remove fa-fw\"><\/span>删除<\/button>",
+                            name: "opDeleteBatchIndex",
+                            text: "删除"
+                        }
+                    ],
+                    pageable: {
+                        pageSizes: [20, 50, 100, 500],
+                        pageSize: 20,
+                        refresh: true
+                    },
+                    sortable: {mode: "multiple", allowUnsort: true},
+                    allowCopy: true,
+                    filterable: {
+                        mode: "row,menu"
+                    },
+                    resizable: true,
+                    editable: false,
+                    reorderable: true,
+                    scrollable: {virtual: false},
+                    columns: [
+                        {
+                            field: "indexCkAll",
+                            sortable: false,
+                            filterable: false,
+                            width: "35px",
+                            headerTemplate: '<input type="checkbox" class="k-checkbox" id="indexCkAll"/><label for="indexCkAll" class="k-checkbox-label" onclick="javascript:if($(\'#indexCkAll\').is(\':checked\')){$(\'input[name=opindexCheck]\').prop(\'checked\',false);} else {$(\'input[name=opindexCheck]\').prop(\'checked\',true)}"></label>',
+                            template: function (e) {
+                                return '<input type="checkbox" name="opindexCheck" class="k-checkbox" data-type="ck" id="ck' + e.uid + '"/><label for="ck' + e.uid + '" class="k-checkbox-label" ></label>';
+                            }
+                        },
+                        {
+                            title: "操作",
+                            width: "120px",
+                            command: [{
+                                name: "opEdit",
+                                text: '<span class="fa fa-pencil fa-fw"></span>',
+                                title: "编辑",
+                                click: function (e) {
+                                    e.preventDefault();
+                                    var dataItem = $("#" + gridName).data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+                                    editIndexInfo(dataItem.id);
+                                }
+                            }, {
+                                name: "opAudit",
+                                text: '<span class="fa fa-shield fa-fw"></span>',
+                                title: "编辑",
+                                click: function (e) {
+                                    e.preventDefault();
+                                    var dataItem = $("#" + gridName).data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+                                    auditInfo(dataItem.id);
+                                }
+                            }, {
+                                name: "opDelete",
+                                text: '<span class="fa fa-remove fa-fw"></span>',
+                                title: "删除",
+                                click: function (e) {
+                                    e.preventDefault();
+                                    var dataItem = $("#" + gridName).data("kendoGrid").dataItem($(e.currentTarget).closest("tr"));
+                                    deleteIndexInfo(dataItem.id);
+                                }
+                            }]
+                        },
+                        {
+                            field: "id",
+                            width: "180px",
+                            title: "销售单号"
+                        }
+                        ,
+                        {
+                            field: "status",
+                            width: "140px",
+                            title: "订单状态",
+                            filterable: {
+                                cell: {
+                                    template: function (args) {
+                                        args.element.kendoComboBox({
+                                            dataSource: orderStatusDataSource,
+                                            dataValueField: "id",
+                                            dataTextField: "text",
+                                            valuePrimitive: true,
+                                            autoBind: true
+                                        });
+                                    },
+                                    showOperators: false
+                                }
+                            },
+                            template: function (e) {
+                                return transCodeToNameByDataSource(orderStatusDataSource, e.status);
+                            }
+                        }
+                        ,
+                        {
+                            field: "customerName",
+                            width: "140px",
+                            title: "客户名称"
+                        }
+                        ,
+                        {
+                            field: "warehouseName",
+                            width: "140px",
+                            title: "仓库名称"
+                        }
+                        ,
+                        {
+                            field: "address",
+                            width: "140px",
+                            title: "收货地址"
+                        }
+                        ,
+                        {
+                            field: "person",
+                            width: "140px",
+                            title: "联系人"
+                        }
+                        ,
+                        {
+                            field: "phone",
+                            width: "140px",
+                            title: "联系电话"
+                        }
+                        ,
+                        {
+                            field: "orderDate",
+                            width: "140px",
+                            title: "订单日期"
+                        }
+                        ,
+                        {
+                            field: "deliveryDate",
+                            width: "140px",
+                            title: "申请发货日期"
+                        }
+                        ,
+                        {
+                            field: "receipt",
+                            width: "140px",
+                            title: "发票号"
+                        }
+                        ,
+                        {
+                            field: "remark",
+                            width: "140px",
+                            title: "备注"
+                            , attributes: {
+                            style: "white-space: nowrap",
+                            tipflag: "hasTooltip",
+                            datafield: "remark"
+                        }
+                        }
+                        ,
+                        {
+                            field: "createTime",
+                            width: "140px",
+                            title: "创建时间"
+                        }
+                        ,
+                        {
+                            field: "createEmp",
+                            width: "140px",
+                            title: "创建人"
+                        }
+                        ,
+                        {
+                            field: "createEmpId",
+                            width: "140px",
+                            title: "创建人编号"
+                        }
+                        ,
+                        {
+                            field: "modifyTime",
+                            width: "140px",
+                            title: "修改时间"
+                        }
+                        ,
+                        {
+                            field: "modifyEmp",
+                            width: "140px",
+                            title: "修改人"
+                        }
+                        ,
+                        {
+                            field: "modifyEmpId",
+                            width: "140px",
+                            title: "修改人编号"
+                        }
+                        ,
+                        {
+                            field: "auditTime",
+                            width: "140px",
+                            title: "审核时间"
+                        }
+                        ,
+                        {
+                            field: "auditEmp",
+                            width: "140px",
+                            title: "审核人"
+                        }
+                        ,
+                        {
+                            field: "auditEmpId",
+                            width: "140px",
+                            title: "审核人编号"
+                        }
+
+                    ],
+                    detailTemplate: kendo.template($("#detail-template").html()),
+                    detailExpand: setDetailGrid,
+                    filterable: {
+                        mode: "row,menu",
+                        messages: messages,
+                        operators: {
+                            string: operators
+                        }
+                        ,
+                        extra: true
+                    }, dataBound: function (e) {
+                        gridOnDataBound();
+                        onDataBound();
+                    }
+                }
+        )
+        ;
+        $("#" + gridName).kendoTooltip({
+            filter: "td[tipflag='hasTooltip']", position: "top", content: function (e) {
+                var field = $(e.target).attr("datafield");
+                var dataItem = $("#" + gridName).data("kendoGrid").dataItem(e.target.closest("tr"));
+                return dataItem[field];
+            }
+        }).data("kendoTooltip");
+    }
+
+    function onDataBound() {
+        $("#" + gridName + " tbody tr").each(function () {
+            var currentDataItem = $("#" + gridName).data("kendoGrid").dataItem($(this));
+            if (currentDataItem == null) {
+                return false;
+            }
+            var status = parseInt(currentDataItem.status);
+            if (status == 10) {
+            } else if (status >= 20) {
+                $(this).find(".k-grid-opDelete").remove();
+                $(this).find(".k-grid-opAudit").remove();
+            }
+        })
+    }
+
+    /**
+     * 审核
+     * @param id
+     */
+    function auditInfo(id) {
+        actionInfo({
+            url: '${ctx}/crm/sales/salesOrder/' + id + "/auditById",
+            gridName: gridName
+        });
+    }
+
+    // 设置数据源
+    function setGridDataSource() {
+        var data = getGridDataSource("/crm/sales/salesOrder/loadData")
+        var grid = $("#" + gridName).data("kendoGrid");
+        grid.setDataSource(data);
+    }
+
+    // 编辑
+    function editIndexInfo(id) {
+        window.location.href = '${ctx}/crm/sales/salesOrder/edit?id=' + id;
+    }
+
+    // 删除
+    function deleteIndexInfo(id) {
+        actionInfo({
+            url: '${ctx}/crm/sales/salesOrder/' + id + "/deleteById",
+            gridName: gridName
+        });
+    }
+
+    // 创建
+    function creareIndex() {
+        window.location.href = '${ctx}/crm/sales/salesOrder/create';
+    }
+
+    // 批量删除
+    function deleteBatchIndex() {
+        batchActionByIds({
+            url: '${ctx}/crm/sales/salesOrder/deleteBatchByIds',
+            gridName: gridName
+        });
+    }
+
+</script>
